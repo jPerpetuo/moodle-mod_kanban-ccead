@@ -678,7 +678,30 @@ export default class extends KanbanComponent {
     }
 
     /**
-     * Format due date using the final date instead of relative time.
+     * Format due date for tooltip using an absolute date.
+     * @param {int} timestamp
+     * @returns {string}
+     */
+    formatDueDateTooltip(timestamp) {
+        const lang = this.reactive.state.common.lang || 'pt-BR';
+        return new Intl.DateTimeFormat(lang, {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+        }).format(new Date(timestamp));
+    }
+
+    /**
+     * Format due date using relative time.
+     * @param {int} timestamp
+     * @returns {string}
+     */
+    formatRelativeDueDate(timestamp) {
+        return this.updateRelativeTime(timestamp);
+    }
+
+    /**
+     * Format due date using relative time and absolute tooltip.
      */
     _dueDateFormat() {
         const element = this.getElement(selectors.DUEDATE);
@@ -686,18 +709,25 @@ export default class extends KanbanComponent {
         const duedate = element.dataset.date * 1000;
 
         if (duedate > 0) {
+            const overdue = duedate < new Date().getTime();
             if (!text) {
-                element.innerHTML = '<span class="mod_kanban_duedate_icon">' +
-                    '<i class="icon fa-regular fa-calendar-days fa-fw" aria-hidden="true"></i></span>' +
+                element.innerHTML = '<span class="mod_kanban_duedate_icon"></span>' +
                     '<span class="mod_kanban_duedate_text"></span>';
                 text = element.querySelector('.mod_kanban_duedate_text');
             }
-            if (text) {
-                text.innerHTML = this.formatDueDate(duedate);
-            } else {
-                element.innerHTML = this.formatDueDate(duedate);
+            const icon = element.querySelector('.mod_kanban_duedate_icon');
+            if (icon) {
+                icon.innerHTML = overdue
+                    ? '<i class="icon fa fa-exclamation-circle fa-fw" aria-hidden="true"></i>'
+                    : '<i class="icon fa-regular fa-calendar-days fa-fw" aria-hidden="true"></i>';
             }
-            if (duedate < new Date().getTime()) {
+            if (text) {
+                text.innerHTML = this.formatRelativeDueDate(duedate);
+            } else {
+                element.innerHTML = this.formatRelativeDueDate(duedate);
+            }
+            element.setAttribute('title', this.formatDueDateTooltip(duedate));
+            if (overdue) {
                 element.classList.add('mod_kanban_overdue');
             } else {
                 element.classList.remove('mod_kanban_overdue');
