@@ -1,0 +1,150 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_kanban/board
+
+    Template for the whole kanban board.
+
+    Example context (json):
+    {
+        "cmid": 12,
+        "id": 2,
+        "hascolumns": false,
+        "locked": 0,
+        "addcard": true,
+        "manageboard": false,
+        "managecolumns": false,
+        "manageassignedcards": true,
+        "manageallcards": false,
+        "hastemplate": false,
+        "istemplate": true,
+        "history": true,
+        "heading": "Course board",
+        "boardselector": {
+            "show": true,
+            "label": "Current board",
+            "currentlabel": "Group A",
+            "summary": "You are viewing 1 of 4 boards",
+            "groupmemberslabel": "4 participants in this group",
+            "hasgroupmembers": true,
+            "groupmembers": [
+                {"id": 7, "fullname": "Maria S.", "userpicture": "<img src=\"#\" alt=\"Maria S.\">"}
+            ],
+            "boards": [
+                {"id": 4, "label": "Group A", "icon": "i/group", "url": "view.php?id=12&groupid=4", "current": true}
+            ]
+        },
+        "ismyuserboard": true,
+        "usenumbers": true
+    }
+}}
+<div class="container-fluid mod_kanban_board {{#locked}}mod_kanban_board_locked_columns{{/locked}} {{#addcard}}mod_kanban_addcards{{/addcard}} {{#managecolumns}}mod_kanban_managecolumns{{/managecolumns}} {{#manageassignedcards}}mod_kanban_manageassignedcards{{/manageassignedcards}} {{#manageallcards}}mod_kanban_manageallcards{{/manageallcards}} {{#hastemplate}}mod_kanban_hastemplate{{/hastemplate}} {{#istemplate}}mod_kanban_istemplate{{/istemplate}} {{#history}}mod_kanban_history{{/history}} {{#userboardsonly}}mod_kanban_userboardsonly{{/userboardsonly}} {{#iscourseboard}}mod_kanban_iscourseboard{{/iscourseboard}} {{#manageboard}}mod_kanban_manageboard{{/manageboard}} {{#ismyuserboard}}mod_kanban_ismyuserboard{{/ismyuserboard}} {{#usenumbers}}mod_kanban_usenumbers{{/usenumbers}}" id="mod_kanban_board-{{id}}" data-id="{{id}}" data-cmid="{{cmid}}">
+    {{#boardselector.show}}
+    <div class="mod_kanban_board_focus" data-id="{{id}}">
+        <div class="mod_kanban_board_focus_head">
+            <div class="mod_kanban_board_focus_primary">
+                <div class="mod_kanban_board_focus_label">{{boardselector.label}}:</div>
+                {{>mod_kanban/boardselector}}
+            </div>
+            <div class="mod_kanban_board_focus_controls">
+                {{>mod_kanban/actionmenuboard}}
+            </div>
+        </div>
+        <div class="mod_kanban_board_focus_meta">
+            {{#boardselector.summary}}
+            <div class="mod_kanban_board_focus_summary">{{boardselector.summary}}</div>
+            {{/boardselector.summary}}
+            {{#boardselector.groupmemberslabel}}
+            {{#boardselector.hasgroupmembers}}
+            <button type="button" class="btn btn-link mod_kanban_board_focus_group mod_kanban_board_focus_group_trigger" data-bs-toggle="modal" data-toggle="modal" data-bs-target="#mod_kanban_group_members_modal_{{id}}" data-target="#mod_kanban_group_members_modal_{{id}}">
+                <span class="mod_kanban_board_focus_group_icon">{{#pix}} t/user, core, {{boardselector.groupmemberslabel}} {{/pix}}</span>
+                <span class="mod_kanban_board_focus_group_text">{{boardselector.groupmemberslabel}}</span>
+            </button>
+            {{/boardselector.hasgroupmembers}}
+            {{^boardselector.hasgroupmembers}}
+            <div class="mod_kanban_board_focus_group">
+                <span class="mod_kanban_board_focus_group_icon">{{#pix}} t/user, core, {{boardselector.groupmemberslabel}} {{/pix}}</span>
+                <span class="mod_kanban_board_focus_group_text">{{boardselector.groupmemberslabel}}</span>
+            </div>
+            {{/boardselector.hasgroupmembers}}
+            {{#boardselector.hasgroupmembers}}
+            <div class="mod_kanban_group_members_modal modal fade" id="mod_kanban_group_members_modal_{{id}}" aria-hidden="true" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">{{#str}} groupmemberstitle, mod_kanban {{/str}}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" data-dismiss="modal" aria-label="{{#str}} closebuttontitle, core {{/str}}"></button>
+                        </div>
+                        <div class="modal-body mod_kanban_group_members_modal_body">
+                            <ul class="mod_kanban_group_members_list">
+                                {{#boardselector.groupmembers}}
+                                <li class="mod_kanban_group_members_item">
+                                    <span class="mod_kanban_group_members_avatar">{{{userpicture}}}</span>
+                                    <span class="mod_kanban_group_members_name">{{fullname}}</span>
+                                </li>
+                                {{/boardselector.groupmembers}}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{/boardselector.hasgroupmembers}}
+            {{/boardselector.groupmemberslabel}}
+        </div>
+    </div>
+    {{/boardselector.show}}
+    {{^boardselector.show}}
+    <div class="mod_kanban_board_title">{{heading}}</div>
+    {{/boardselector.show}}
+    <div class="row mod_kanban_update_error">
+        <div class="col">
+            <div class="alert alert-danger" role="alert">
+                {{#pix}} i/caution, core, {{#str}} connectionlost, mod_kanban {{/str}} {{/pix}}
+                {{#str}} connectionlostmessage, mod_kanban {{/str}}
+            </div>
+        </div>
+    </div>
+    <div class="row mod_kanban_scroll mod_kanban_scroll_left">
+        <button class="mod_kanban_scroll_button" type="button" aria-label="Rolar para a esquerda" title="Rolar para a esquerda">
+            <span class="mod_kanban_scroll_button_icon" aria-hidden="true">&#10094;</span>
+        </button>
+    </div>
+    <div class="row mod_kanban_scroll mod_kanban_scroll_right">
+        <button class="mod_kanban_scroll_button" type="button" aria-label="Rolar para a direita" title="Rolar para a direita">
+            <span class="mod_kanban_scroll_button_icon" aria-hidden="true">&#10095;</span>
+        </button>
+    </div>
+    <div class="row mod_kanban_main">
+        <ul class="row mod_kanban_column_container" data-id="{{id}}" data-cmid="{{cmid}}">
+            <li class="mod_kanban_addcolumn_first">
+                {{>mod_kanban/addcolumn}}
+            </li>
+            {{#hascolumns}}
+                {{#columns}}
+                    {{>mod_kanban/column}}
+                {{/columns}}
+            {{/hascolumns}}
+        </ul>
+    </div>
+</div>
+{{#js}}
+require(['core/inplace_editable']);
+require(['mod_kanban/board'], function(component) {
+    component.init('mod_kanban_board-{{id}}');
+});
+{{/js}}
+
