@@ -1321,6 +1321,10 @@ a.mod_kanban_attachment_item {
     color: #198754;
 }
 
+.mod_kanban_card .mod_kanban_action_menu .dropdown-item {
+    cursor: pointer;
+}
+
 .mod_kanban_card_footer {
     display: flex;
     flex-direction: column;
