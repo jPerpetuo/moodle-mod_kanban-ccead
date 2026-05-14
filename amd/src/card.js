@@ -452,6 +452,10 @@ export default class extends KanbanComponent {
                 });
             }
         }
+        const assigneesRow = this.getElement().querySelector('.mod_kanban_card_assignees_row');
+        if (assigneesRow) {
+            assigneesRow.classList.toggle('has-assignees', this.getElements(selectors.ASSIGNEDUSER, this.id).length > 0);
+        }
         this.toggleClass(element.selfassigned, 'mod_kanban_selfassigned');
         // Set card completion state.
         this.toggleClass(element.completed == 1, 'mod_kanban_closed');
@@ -481,6 +485,17 @@ export default class extends KanbanComponent {
             } else {
                 this.getElement().setAttribute('style', 'background-color: ' + options.background);
             }
+        }
+        const metaRow = this.getElement().querySelector('.mod_kanban_card_meta_row');
+        if (metaRow) {
+            const duedate = Number(this.getElement(selectors.DUEDATE).dataset.date);
+            metaRow.classList.toggle(
+                'has-meta',
+                duedate > 0 ||
+                this.getElement().classList.contains('mod_kanban_hasdiscussion') ||
+                this.getElement().classList.contains('mod_kanban_hasdescription') ||
+                this.getElement().classList.contains('mod_kanban_hasattachment')
+            );
         }
         // Enable/disable dragging and inplace editing (e.g. if user is not assigned to the card anymore).
         this.checkEditing();
