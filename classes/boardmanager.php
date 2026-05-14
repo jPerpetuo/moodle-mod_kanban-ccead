@@ -1311,6 +1311,10 @@ class boardmanager {
             }
         }
 
+        $currentassignees = $this->get_card_assignees($cardid);
+        $cardupdate['assignees'] = $currentassignees;
+        $cardupdate['selfassigned'] = in_array($USER->id, $currentassignees);
+
         $this->formatter->put('cards', $cardupdate, false);
     }
 
