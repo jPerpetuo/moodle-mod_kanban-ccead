@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // This file is part of Moodle - https://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -29,15 +29,16 @@ $string['addcard'] = 'Add a card to this column';
 $string['addcardshort'] = 'Add card';
 $string['addcolumn'] = 'Add a column to this board';
 $string['addcolumnshort'] = 'Add column';
+$string['aftercompletion'] = 'after card is closed';
 $string['boardmode'] = 'Board mode';
 $string['boardmode_help'] = 'Choose whether the activity uses one shared board for everyone or one board per group.';
 $string['boardmodegroup'] = 'One board per group';
 $string['boardmodeshared'] = 'One shared board';
+$string['boardactions'] = 'Board actions';
+$string['boardgroupcurrent'] = 'Use the current group';
 $string['boardgroupid'] = 'Default group board';
 $string['boardgroupid_help'] = 'Choose which group board should open first for trainers when the activity uses group boards. Students still open the board for their own group.';
-$string['boardgroupcurrent'] = 'Use the current group';
-$string['boardactions'] = 'Board actions';
-$string['aftercompletion'] = 'after card is closed';
+$string['boardviewsummary'] = 'You are viewing {$a->current} of {$a->total} boards';
 $string['afterdue'] = 'after card is due';
 $string['assignee'] = 'Assignee';
 $string['assignees'] = 'Assignees';
@@ -64,6 +65,7 @@ $string['connectionlost'] = 'Connection lost';
 $string['connectionlostmessage'] = 'Connection to the server was lost. Trying to reconnect...';
 $string['courseboard'] = 'Shared board';
 $string['createtemplate'] = 'Create template';
+$string['currentboard'] = 'Current board';
 $string['deleteboard'] = 'Delete board';
 $string['deleteboardconfirm'] = 'Are you sure you want to delete this board? A new board will be created based on the template.';
 $string['deletecard'] = 'Delete card';
@@ -86,9 +88,9 @@ $string['editing_this_card_is_not_allowed'] = 'Editing this card is not allowed'
 $string['enablehistory'] = 'Enable history';
 $string['enablehistory_help'] = 'Enable recording history of cards in this board (e.g. when card was moved / renamed / completed)';
 $string['enablehistorydescription'] = 'Enabling this option will make history of changes available to the boards.';
-$string['groupboard'] = 'Group board for group "{$a}"';
-$string['boardviewsummary'] = 'You are viewing {$a->current} of {$a->total} boards';
 $string['groupmemberscount'] = '{$a} participants in this group';
+$string['groupmemberstitle'] = 'Group members';
+$string['groupboard'] = 'Group board for group "{$a}"';
 $string['hidehidden'] = 'Hide hidden cards';
 $string['history'] = 'History';
 $string['history_card_added'] = '{$a->username} added card "{$a->title}" to column "{$a->columnname}"';
@@ -205,10 +207,9 @@ $string['showboard'] = 'Show shared board';
 $string['showdescription'] = 'Show description';
 $string['showdiscussion'] = 'Show discussion';
 $string['showhidden'] = 'Show hidden cards';
-$string['currentboard'] = 'Current board';
-$string['switchboard'] = 'Switch board';
 $string['showtemplate'] = 'Show template';
 $string['startdiscussion'] = 'Start discussion';
+$string['switchboard'] = 'Switch board';
 $string['template'] = 'Template';
 $string['toboard'] = 'Board "{$a->boardname}"';
 $string['todo'] = 'Todo';
@@ -225,11 +226,9 @@ $string['userboards'] = 'Personal boards';
 $string['userboards_help'] = 'Enables personal boards for the participants (only visible to them and to the trainers)';
 $string['userboardsenabled'] = 'Personal boards enabled';
 $string['userboardsonly'] = 'Personal boards only';
+$string['viewmembers'] = 'View members';
 $string['wiplimit'] = 'WIP limit per person';
 $string['wiplimitenable'] = 'Enable WIP limit';
 $string['wiplimitgreaterzero'] = 'WIP limit needs to be greater than zero';
 $string['wiplimitreached'] = 'WIP limit is reached for {$a->users}.';
-
-$string['viewmembers'] = 'View members';
-$string['groupmemberstitle'] = 'Group members';
 

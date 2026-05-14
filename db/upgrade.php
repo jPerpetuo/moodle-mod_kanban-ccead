@@ -30,35 +30,8 @@
  */
 function xmldb_kanban_upgrade($oldversion) {
     global $DB;
+
     $dbman = $DB->get_manager();
-
-    if ($oldversion < 2026050701) {
-        // Define field boardmode to be added to kanban.
-        $table = new xmldb_table('kanban');
-        $field = new xmldb_field('boardmode', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0', 'introformat');
-
-        // Conditionally launch add field boardmode.
-        if (!$dbman->field_exists($table, $field)) {
-            $dbman->add_field($table, $field);
-        }
-
-        // Kanban savepoint reached.
-        upgrade_mod_savepoint(true, 2026050701, 'kanban');
-    }
-
-    if ($oldversion < 2026050702) {
-        // Define field boardgroupid to be added to kanban.
-        $table = new xmldb_table('kanban');
-        $field = new xmldb_field('boardgroupid', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'boardmode');
-
-        // Conditionally launch add field boardgroupid.
-        if (!$dbman->field_exists($table, $field)) {
-            $dbman->add_field($table, $field);
-        }
-
-        // Kanban savepoint reached.
-        upgrade_mod_savepoint(true, 2026050702, 'kanban');
-    }
 
     if ($oldversion < 2024121602) {
         // Define field repeat_enable to be added to kanban_card.
@@ -158,5 +131,34 @@ function xmldb_kanban_upgrade($oldversion) {
         // Kanban savepoint reached.
         upgrade_mod_savepoint(true, 2025020301, 'kanban');
     }
+
+    if ($oldversion < 2026050701) {
+        // Define field boardmode to be added to kanban.
+        $table = new xmldb_table('kanban');
+        $field = new xmldb_field('boardmode', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0', 'introformat');
+
+        // Conditionally launch add field boardmode.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Kanban savepoint reached.
+        upgrade_mod_savepoint(true, 2026050701, 'kanban');
+    }
+
+    if ($oldversion < 2026050702) {
+        // Define field boardgroupid to be added to kanban.
+        $table = new xmldb_table('kanban');
+        $field = new xmldb_field('boardgroupid', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'boardmode');
+
+        // Conditionally launch add field boardgroupid.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Kanban savepoint reached.
+        upgrade_mod_savepoint(true, 2026050702, 'kanban');
+    }
+
     return true;
 }
