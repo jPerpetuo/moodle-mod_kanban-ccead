@@ -760,7 +760,7 @@ a.mod_kanban_attachment_item {
     border: 0;
     background: transparent;
     color: #2f6fd6;
-    text-decoration: none !important;
+    text-decoration: none;
 }
 
 .mod_kanban_board_focus_group_trigger .mod_kanban_board_focus_group_icon {
@@ -776,7 +776,7 @@ a.mod_kanban_attachment_item {
 .mod_kanban_board_focus_group_trigger:focus-visible,
 .mod_kanban_board_focus_group_trigger:active {
     color: #2457aa;
-    text-decoration: none !important;
+    text-decoration: none;
 }
 
 .mod_kanban_board_focus_group_trigger:hover .mod_kanban_board_focus_group_text,
@@ -1445,7 +1445,7 @@ a.mod_kanban_attachment_item {
 .mod_kanban_card .mod_kanban_duedate.mod_kanban_overdue .mod_kanban_duedate_text {
     color: #dc3545;
     margin-left: 2px;
-} 
+}
 
 .mod_kanban_card .mod_kanban_card_completion {
     position: static;
@@ -1455,13 +1455,13 @@ a.mod_kanban_attachment_item {
     height: 1.9rem;
     padding: 0;
     border-radius: .5rem;
-    background: #D8E7C7 !important;
+    background: #d8e7c7;
     box-shadow: none;
 }
 
 .mod_kanban_card .mod_kanban_card_completion:hover,
 .mod_kanban_card .mod_kanban_card_completion:focus {
-    background: #d0e0bd !important;
+    background: #d0e0bd;
     color: #146c43;
 }
 
@@ -1540,7 +1540,7 @@ a.mod_kanban_attachment_item {
 .mod_kanban_addcard_link:active,
 .mod_kanban_addcard_link:hover,
 .mod_kanban_addcard_link:focus {
-    text-decoration: none !important;
+    text-decoration: none;
 }
 
 .mod_kanban_column > .mod_kanban_addcard_link {
@@ -1554,7 +1554,7 @@ a.mod_kanban_attachment_item {
 .mod_kanban_column > .mod_kanban_addcard_link:focus-visible,
 .mod_kanban_column > .mod_kanban_addcard_link:active {
     color: #2f6fd6;
-    text-decoration: none !important;
+    text-decoration: none;
 }
 
 @media (max-width: 768px) {

@@ -687,7 +687,7 @@ class boardmanager {
      * @param array $data Data to override default values
      * @return int Id of the card
      */
- /*   public function add_card(int $columnid, int $aftercard = 0, array $data = []): int {
+    public function add_card(int $columnid, int $aftercard = 0, array $data = []): int {
         global $DB, $USER;
         $defaults = [
             'title' => get_string('newcard', 'mod_kanban'),
@@ -740,74 +740,6 @@ class boardmanager {
 
         return $data['id'];
     }
-	*/
-	
-		// TESTE CARD //
-	
-	public function add_card(int $columnid, int $aftercard = 0, array $data = []): int {
-    global $DB, $USER;
-
-    // Bloqueio silencioso: se board ou coluna estiverem locked e o usuário não for gestor,
-    // simplesmente não cria o card e retorna 0 (sem lançar exceção/modal).
-    $context = \context_module::instance($this->cmid);
-    $colstatus = $DB->get_record('kanban_column', ['id' => $columnid], 'id, locked', MUST_EXIST);
-    if (!has_capability('mod/kanban:manageallcards', $context)
-        && (!empty($this->board->locked) || !empty($colstatus->locked))) {
-        return 0;
-    }
-
-    $defaults = [
-        'title' => get_string('newcard', 'mod_kanban'),
-        'options' => '{}',
-        'description' => '',
-        'createdby' => $USER->id,
-    ];
-    $defaultsfixed = [
-        'kanban_board' => $this->board->id,
-        'kanban_column' => $columnid,
-        'timecreated' => time(),
-        'timemodified' => time(),
-        'sequence' => '',
-    ];
-    $data = array_merge($defaults, $data, $defaultsfixed);
-
-    $data['number'] = self::get_next_card_number();
-
-    $data['id'] = $DB->insert_record('kanban_card', $data);
-    $data['assignees'] = [];
-    $data['title'] = clean_param($data['title'], PARAM_TEXT);
-
-    try {
-        $transaction = $DB->start_delegated_transaction();
-        $column = $DB->get_record('kanban_column', ['id' => $columnid]); // recarrega completo p/ sequência e título
-
-        $update = [
-            'id' => $columnid,
-            'sequence' => helper::sequence_add_after($column->sequence, $aftercard, $data['id']),
-            'timemodified' => time(),
-        ];
-        $DB->update_record('kanban_column', $update);
-        $transaction->allow_commit();
-    } catch (\Exception $e) {
-        $transaction->rollback($e);
-    }
-
-    $data['canedit'] = $this->can_user_manage_specific_card($data['id']);
-    $data['columnname'] = clean_param($column->title, PARAM_TEXT);
-
-    $this->formatter->put('cards', $data);
-    $this->formatter->put('columns', $update);
-    $this->write_history('added', constants::MOD_KANBAN_CARD, $data, $columnid, $data['id']);
-    helper::update_cached_timestamp($this->board->id, constants::MOD_KANBAN_COLUMN, $update['timemodified']);
-    helper::update_cached_timestamp($this->board->id, constants::MOD_KANBAN_CARD, $update['timemodified']);
-
-    $this->update_completion([$USER->id]);
-
-    return $data['id'];
-}
-	
-	// TESTE CARD //
-
 
     /**
      * Moves a column.
@@ -869,17 +801,16 @@ class boardmanager {
                 $this->formatter->put('columns', $update);
             } else {
                 $targetcolumn = $DB->get_record('kanban_column', ['id' => $columnid]);
-				
-			/* Exibe icone Cadeado */
-			if (!empty($targetcolumn->locked)) {
-				// Força o frontend a re-renderizar estado locked e exibir o ícone.
-				$this->formatter->put('columns', [
-					'id' => $targetcolumn->id,
-					'locked' => 1,
-					'timemodified' => time(),
-				]);
-				return;
-			}
+
+                if (!empty($targetcolumn->locked)) {
+                    // Force the frontend to keep the locked column state in sync.
+                    $this->formatter->put('columns', [
+                        'id' => $targetcolumn->id,
+                        'locked' => 1,
+                        'timemodified' => time(),
+                    ]);
+                    return;
+                }
 
                 $options = json_decode($targetcolumn->options);
                 $wiplimit = $options->wiplimit ?? 0;
@@ -892,7 +823,6 @@ class boardmanager {
                 // work if card is already moved in the right position.
                 $updatecard = ['id' => $cardid, 'kanban_column' => $columnid, 'timemodified' => time()];
                 // If target column has autoclose option set, update card to be completed.
-                $options = json_decode($targetcolumn->options);
                 if (!empty($options->autoclose)) {
                     if ($card->completed) {
                         self::set_card_complete($cardid, 1);

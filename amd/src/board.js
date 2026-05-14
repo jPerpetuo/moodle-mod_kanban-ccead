@@ -167,7 +167,7 @@ export default class extends KanbanComponent {
         }
         this._stopContinuousUpdate();
         this._liveupdateSeconds = seconds;
-        const tick = async () => {
+        const tick = async() => {
             if (document.hidden || this._liveupdateInFlight) {
                 return;
             }
