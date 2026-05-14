@@ -953,17 +953,17 @@ class boardmanager {
 
         $userids = $this->get_card_assignees($cardid);
 
-        $update['assignees'] = $userids;
-        $update['selfassigned'] = in_array($USER->id, $userids);
-        $update['canedit'] = $this->can_user_manage_specific_card($card->id);
-        $this->formatter->put('cards', $update);
-
         $user = \core_user::get_user($userid);
         $this->formatter->put('users', [
             'id' => $user->id,
             'fullname' => fullname($user),
             'userpicture' => $OUTPUT->user_picture($user, ['link' => false]),
         ]);
+
+        $update['assignees'] = $userids;
+        $update['selfassigned'] = in_array($USER->id, $userids);
+        $update['canedit'] = $this->can_user_manage_specific_card($card->id);
+        $this->formatter->put('cards', $update);
 
         $this->write_history('assigned', constants::MOD_KANBAN_CARD, ['userid' => $userid], $card->kanban_column, $cardid);
         helper::update_cached_timestamp($this->board->id, constants::MOD_KANBAN_CARD, $update['timemodified']);
