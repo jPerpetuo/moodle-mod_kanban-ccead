@@ -609,6 +609,7 @@ a.mod_kanban_attachment_item {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    margin-left: 3.125rem;
     border: 1px solid rgba(31, 41, 51, .14);
     background: rgba(255, 255, 255, .96);
     color: #1f2933;
@@ -1283,6 +1284,10 @@ a.mod_kanban_attachment_item {
 }
 
 .mod_kanban_card_title.card-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: .35rem;
     max-width: none;
     margin: 0;
     min-width: 0;
@@ -1293,12 +1298,43 @@ a.mod_kanban_attachment_item {
     color: #303946;
 }
 
+.mod_kanban_card_title_display {
+    display: block;
+    min-width: 0;
+    flex: 1 1 0;
+}
+
+.mod_kanban_card_title_display.mod_kanban_title_editable .quickeditlink {
+    cursor: text;
+}
+
 .mod_kanban_card_title .quickeditlink {
     display: block;
     color: #303946;
     text-decoration: none;
     white-space: normal;
     word-break: break-word;
+}
+
+.mod_kanban_card_title_editor {
+    flex: 1 1 100%;
+    margin-top: .15rem;
+}
+
+.mod_kanban_card_title_textarea.form-control {
+    width: 100%;
+    min-height: 5.5rem;
+    padding: .55rem .7rem;
+    border: 1px solid #ccd4de;
+    border-radius: .5rem;
+    resize: none;
+    line-height: 1.35;
+    box-shadow: none;
+}
+
+.mod_kanban_card_title_textarea.form-control:focus {
+    border-color: #7aa4f8;
+    box-shadow: 0 0 0 .12rem rgba(47, 111, 214, .16);
 }
 
 .mod_kanban_card .mod_kanban_action_menu {
@@ -1442,8 +1478,7 @@ a.mod_kanban_attachment_item {
 
 .mod_kanban_card .mod_kanban_duedate.mod_kanban_overdue .icon,
 .mod_kanban_card .mod_kanban_duedate.mod_kanban_overdue .mod_kanban_duedate_icon {
-    color: #dc3545;
-    margin: -2px;
+    color: #dc3545;    
 }
 
 .mod_kanban_card .mod_kanban_duedate.mod_kanban_overdue .mod_kanban_duedate_text {
