@@ -35,7 +35,7 @@ class mod_kanban_mod_form extends moodleform_mod {
      * @return void
      */
     public function definition(): void {
-        global $COURSE, $PAGE;
+        global $COURSE;
         $mform = $this->_form;
 
         $mform->addElement('header', 'generalhdr', get_string('general'));
@@ -136,7 +136,7 @@ class mod_kanban_mod_form extends moodleform_mod {
         $mform->addElement('hidden', 'boardgroupid', $primarygroupid);
         $mform->setType('boardgroupid', PARAM_INT);
         $mform->addElement('html', '</div>');
-        $PAGE->requires->js_init_code($this->get_boardgroups_inline_js());
+        $mform->addElement('html', '<script>' . $this->get_boardgroups_inline_js() . '</script>');
 
         if (!empty(get_config('mod_kanban', 'enablehistory'))) {
             $mform->addElement('advcheckbox', 'history', get_string('enablehistory', 'mod_kanban'));
@@ -191,65 +191,71 @@ class mod_kanban_mod_form extends moodleform_mod {
         $groupmodevalue = constants::MOD_KANBAN_BOARDMODE_GROUP;
         return <<<JS
 (function() {
-    const availableSelect = document.getElementById('availableboardgroups');
-    const selectedSelect = document.getElementById('id_selectedBoardGroups');
-    const boardgroupsInput = document.getElementById('id_boardgroups');
-    const boardgroupidInput = document.getElementById('id_boardgroupid');
-    const boardmodeField = document.getElementById('id_boardmode');
-    const container = document.getElementById('kanban-boardgroups-selector');
-    const headerContainer = container ? container.previousElementSibling : null;
-    const form = boardgroupsInput ? boardgroupsInput.closest('form') : null;
+    const init = function() {
+        const availableSelect = document.getElementById('availableboardgroups');
+        const selectedSelect = document.getElementById('id_selectedBoardGroups');
+        const boardgroupsInput = document.getElementById('id_boardgroups');
+        const boardgroupidInput = document.getElementById('id_boardgroupid');
+        const boardmodeField = document.getElementById('id_boardmode');
+        const container = document.getElementById('kanban-boardgroups-selector');
+        const groupsSection = document.getElementById('id_groups') || container.closest('fieldset') || container;
+        const form = boardgroupsInput ? boardgroupsInput.closest('form') : null;
 
-    if (!availableSelect || !selectedSelect || !boardgroupsInput || !boardgroupidInput || !boardmodeField || !container) {
-        return;
-    }
+        if (!availableSelect || !selectedSelect || !boardgroupsInput || !boardgroupidInput || !boardmodeField || !container) {
+            return;
+        }
 
-    const sortOptions = function(select) {
+        const sortOptions = function(select) {
         Array.from(select.options)
             .sort((a, b) => a.text.localeCompare(b.text))
             .forEach((option) => select.appendChild(option));
-    };
+        };
 
-    const syncInputs = function() {
-        const selectedValues = Array.from(selectedSelect.options).map((option) => option.value);
-        boardgroupsInput.value = selectedValues.join(',');
-        boardgroupidInput.value = selectedValues.length ? selectedValues[0] : 0;
-    };
+        const syncInputs = function() {
+            const selectedValues = Array.from(selectedSelect.options).map((option) => option.value);
+            boardgroupsInput.value = selectedValues.join(',');
+            boardgroupidInput.value = selectedValues.length ? selectedValues[0] : 0;
+        };
 
-    window.modKanbanBoardGroupsMove = function(sourceId, targetId) {
-        const source = document.getElementById(sourceId);
-        const target = document.getElementById(targetId);
-        if (!source || !target) {
-            return;
+        window.modKanbanBoardGroupsMove = function(sourceId, targetId) {
+            const source = document.getElementById(sourceId);
+            const target = document.getElementById(targetId);
+            if (!source || !target) {
+                return false;
+            }
+            let selectedOptions = Array.from(source.selectedOptions);
+            if (!selectedOptions.length && source.selectedIndex >= 0) {
+                selectedOptions = [source.options[source.selectedIndex]];
+            }
+            selectedOptions.forEach((option) => {
+                option.selected = false;
+                target.appendChild(option);
+            });
+            sortOptions(source);
+            sortOptions(target);
+            syncInputs();
+            return false;
+        };
+
+        const toggleVisibility = function() {
+            const visible = String(boardmodeField.value) === String($groupmodevalue);
+            groupsSection.style.display = visible ? '' : 'none';
+        };
+
+        boardmodeField.addEventListener('change', toggleVisibility);
+        if (form) {
+            form.addEventListener('submit', syncInputs);
         }
-        let selectedOptions = Array.from(source.selectedOptions);
-        if (!selectedOptions.length && source.selectedIndex >= 0) {
-            selectedOptions = [source.options[source.selectedIndex]];
-        }
-        selectedOptions.forEach((option) => {
-            option.selected = false;
-            target.appendChild(option);
-        });
-        sortOptions(source);
-        sortOptions(target);
+
         syncInputs();
+        toggleVisibility();
     };
 
-    const toggleVisibility = function() {
-        const visible = String(boardmodeField.value) === String($groupmodevalue);
-        container.style.display = visible ? '' : 'none';
-        if (headerContainer) {
-            headerContainer.style.display = visible ? '' : 'none';
-        }
-    };
-
-    boardmodeField.addEventListener('change', toggleVisibility);
-    if (form) {
-        form.addEventListener('submit', syncInputs);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
     }
-
-    syncInputs();
-    toggleVisibility();
 })();
 JS;
     }
