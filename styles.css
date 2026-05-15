@@ -1442,8 +1442,7 @@ a.mod_kanban_attachment_item {
 
 .mod_kanban_card .mod_kanban_duedate.mod_kanban_overdue .icon,
 .mod_kanban_card .mod_kanban_duedate.mod_kanban_overdue .mod_kanban_duedate_icon {
-    color: #dc3545;
-    margin: -2px;
+    color: #dc3545;    
 }
 
 .mod_kanban_card .mod_kanban_duedate.mod_kanban_overdue .mod_kanban_duedate_text {
