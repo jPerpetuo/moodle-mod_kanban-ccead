@@ -240,6 +240,42 @@ class boardmanager {
     }
 
     /**
+     * Return the configured group ids that may appear as boards.
+     *
+     * Empty means "all available groups".
+     *
+     * @return array<int>
+     */
+    public function get_configured_board_group_ids(): array {
+        $serialized = trim((string)($this->kanban->boardgroups ?? ''));
+        if ($serialized === '') {
+            return [];
+        }
+        $groupids = preg_split('/[;,]/', $serialized, -1, PREG_SPLIT_NO_EMPTY);
+        $groupids = array_map('intval', $groupids);
+        $groupids = array_filter($groupids, function(int $groupid): bool {
+            return $groupid > 0;
+        });
+        return array_values(array_unique($groupids));
+    }
+
+    /**
+     * Return the preferred group id for opening a group board.
+     *
+     * This uses the first configured board group if available and otherwise
+     * falls back to the legacy single default group.
+     *
+     * @return int
+     */
+    public function get_preferred_board_group_id(): int {
+        $groupids = $this->get_configured_board_group_ids();
+        if (!empty($groupids)) {
+            return (int)reset($groupids);
+        }
+        return (int)($this->kanban->boardgroupid ?? 0);
+    }
+
+    /**
      * Return the boards that can be switched to from the teacher selector.
      *
      * @return array<int, array<string, mixed>>
@@ -394,6 +430,10 @@ class boardmanager {
         }
         if (empty($groups) && !empty($this->course->id)) {
             $groups = groups_get_all_groups((int)$this->course->id, 0, 0, 'g.id, g.name');
+        }
+        $configuredgroupids = $this->get_configured_board_group_ids();
+        if (!empty($configuredgroupids) && !empty($groups)) {
+            $groups = array_intersect_key($groups, array_flip($configuredgroupids));
         }
         return $groups ?: [];
     }

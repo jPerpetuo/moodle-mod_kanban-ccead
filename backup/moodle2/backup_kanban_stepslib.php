@@ -41,6 +41,7 @@ class backup_kanban_activity_structure_step extends backup_activity_structure_st
                 'introformat',
                 'boardmode',
                 'boardgroupid',
+                'boardgroups',
                 'userboards',
                 'history',
                 'completioncreate',

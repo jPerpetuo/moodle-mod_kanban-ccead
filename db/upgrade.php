@@ -160,5 +160,19 @@ function xmldb_kanban_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2026050702, 'kanban');
     }
 
+    if ($oldversion < 2026051502) {
+        // Define field boardgroups to be added to kanban.
+        $table = new xmldb_table('kanban');
+        $field = new xmldb_field('boardgroups', XMLDB_TYPE_TEXT, null, null, null, null, null, 'boardgroupid');
+
+        // Conditionally launch add field boardgroups.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Kanban savepoint reached.
+        upgrade_mod_savepoint(true, 2026051502, 'kanban');
+    }
+
     return true;
 }

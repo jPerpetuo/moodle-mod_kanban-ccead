@@ -57,11 +57,11 @@ $groupselector = '';
 $groupid = 0;
 $currentgroupid = 0;
 $boardmode = (int)($kanban->boardmode ?? constants::MOD_KANBAN_BOARDMODE_SHARED);
-$defaultgroupid = (int)($kanban->boardgroupid ?? 0);
 $canaccessotherboards = has_capability('mod/kanban:viewallboards', $context) ||
     has_capability('mod/kanban:editallboards', $context);
 $allowedgroups = [];
 $boardmanager = new boardmanager($cm->id);
+$defaultgroupid = $boardmanager->get_preferred_board_group_id();
 
 $groupmode = groups_get_activity_groupmode($cm, $course);
 
@@ -92,10 +92,10 @@ if (empty($boardid)) {
 
         if ($canaccessotherboards && !empty($requestedgroupid) && !empty($allowedgroups[$requestedgroupid])) {
             $groupid = $requestedgroupid;
+        } else if (!empty($currentgroupid) && !empty($allowedgroups[$currentgroupid])) {
+            $groupid = $currentgroupid;
         } else if (!empty($defaultgroupid) && !empty($allowedgroups[$defaultgroupid])) {
             $groupid = $defaultgroupid;
-        } else if (!empty($currentgroupid)) {
-            $groupid = $currentgroupid;
         } else if ($canaccessotherboards && !empty($allowedgroups)) {
             $firstgroup = reset($allowedgroups);
             $groupid = $firstgroup->id;

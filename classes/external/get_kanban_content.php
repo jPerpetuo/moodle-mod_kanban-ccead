@@ -432,7 +432,7 @@ class get_kanban_content extends external_api {
                 // Keep the configured group board available in the selector even
                 // when the current board is the shared board or when Moodle
                 // activity group mode is disabled.
-                $selectorcurrentgroupid = (int)($kanban->boardgroupid ?? 0);
+                $selectorcurrentgroupid = $boardmanager->get_preferred_board_group_id();
                 if (empty($selectorcurrentgroupid)) {
                     $selectorcurrentgroupid = (int)$currentgroupid;
                 }
@@ -543,7 +543,7 @@ class get_kanban_content extends external_api {
         $common->lang = str_replace('_', '-', $common->lang);
         $common->liveupdate = get_config('mod_kanban', 'liveupdatetime');
         $common->boardmode = $boardmode;
-        $common->boardgroupid = (int)($kanban->boardgroupid ?? 0);
+        $common->boardgroupid = $boardmanager->get_preferred_board_group_id();
         $common->boardselector = $boardselector;
         $common->userboards = $kanban->userboards;
         $common->groupmode = $groupmode;

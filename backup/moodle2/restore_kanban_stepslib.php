@@ -67,6 +67,17 @@ class restore_kanban_activity_structure_step extends restore_activity_structure_
         $data = (object) $data;
         $oldid = $data->id;
         $data->course = $this->get_courseid();
+        if (!empty($data->boardgroups)) {
+            $mappedgroupids = [];
+            $groupids = preg_split('/[;,]/', (string)$data->boardgroups, -1, PREG_SPLIT_NO_EMPTY);
+            foreach ($groupids as $groupid) {
+                $mappedgroupid = $this->get_mappingid('group', (int)$groupid);
+                if (!empty($mappedgroupid)) {
+                    $mappedgroupids[] = (int)$mappedgroupid;
+                }
+            }
+            $data->boardgroups = implode(',', array_unique($mappedgroupids));
+        }
 
         $newid = $DB->insert_record('kanban', $data);
         $this->set_mapping('kanban_id', $oldid, $newid);

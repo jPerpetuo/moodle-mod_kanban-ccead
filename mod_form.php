@@ -35,7 +35,7 @@ class mod_kanban_mod_form extends moodleform_mod {
      * @return void
      */
     public function definition(): void {
-        global $COURSE;
+        global $COURSE, $PAGE;
         $mform = $this->_form;
 
         $mform->addElement('header', 'generalhdr', get_string('general'));
@@ -55,19 +55,84 @@ class mod_kanban_mod_form extends moodleform_mod {
         $mform->setDefault('boardmode', constants::MOD_KANBAN_BOARDMODE_SHARED);
         $mform->addHelpButton('boardmode', 'boardmode', 'kanban');
 
-        $boardgroups = [0 => get_string('boardgroupcurrent', 'kanban')];
         $courseid = !empty($this->current->course) ? $this->current->course : ($COURSE->id ?? 0);
+        $groups = [];
         if (!empty($courseid)) {
             $groups = groups_get_all_groups($courseid, 0, 0, 'g.id, g.name');
-            if (!empty($groups)) {
-                foreach ($groups as $group) {
-                    $boardgroups[$group->id] = format_string($group->name);
-                }
-            }
         }
-        $mform->addElement('select', 'boardgroupid', get_string('boardgroupid', 'kanban'), $boardgroups);
-        $mform->addHelpButton('boardgroupid', 'boardgroupid', 'kanban');
-        $mform->hideIf('boardgroupid', 'boardmode', 'neq', constants::MOD_KANBAN_BOARDMODE_GROUP);
+
+        $selectedgroupids = $this->get_initial_board_group_ids($groups);
+        $availablegroups = array_filter($groups, function($group) use ($selectedgroupids) {
+            return !in_array((int)$group->id, $selectedgroupids, true);
+        });
+        $selectedgroups = array_filter($groups, function($group) use ($selectedgroupids) {
+            return in_array((int)$group->id, $selectedgroupids, true);
+        });
+        $serializedselectedgroups = implode(',', $selectedgroupids);
+        $primarygroupid = !empty($selectedgroupids) ? reset($selectedgroupids) : 0;
+
+        $mform->addElement('html', '<div id="kanban-boardgroups-selector">');
+        if (!empty($groups)) {
+            $mform->addElement('html', '
+                <div class="fcontainer clearfix">
+                    <label for="availableboardgroups" class="fitemtitle">' . get_string('boardgroups', 'kanban') . '</label>
+                    <div class="fitem fitem_fselect">
+                        <div class="felement fselect">
+                            <div class="mb-2">' . get_string('boardgroupsdescription', 'kanban') . '</div>
+                            <div class="tablecontainer">
+                                <table class="table-reboot">
+                                    <tr class="row">
+                                        <th class="col-lg-5">' . get_string('boardgroupsavailable', 'kanban') . '</th>
+                                        <th class="col-lg-2"></th>
+                                        <th class="col-lg-5">' . get_string('boardgroupsselected', 'kanban') . '</th>
+                                    </tr>
+                                    <tr class="row">
+                                        <td style="vertical-align: top" class="col-5">
+                                            <select class="col-12" id="availableboardgroups" multiple size="10">');
+            foreach ($availablegroups as $group) {
+                $mform->addElement('html', '<option value="' . (int)$group->id . '">' .
+                    format_string($group->name) . '</option>');
+            }
+            $mform->addElement('html', '
+                                            </select>
+                                        </td>
+                                        <td class="col-2">
+                                            <button id="addBoardGroupButton" type="button" class="btn btn-secondary mt-1">' .
+                                                get_string('boardgroupsadd', 'kanban') . '</button>
+                                            <div>
+                                                <button id="removeBoardGroupButton" type="button" class="btn btn-secondary mt-1">' .
+                                                    get_string('boardgroupsremove', 'kanban') . '</button>
+                                            </div>
+                                        </td>
+                                        <td style="vertical-align: top" class="col-5">
+                                            <select class="col-12" id="id_selectedBoardGroups" multiple size="10">');
+            foreach ($selectedgroups as $group) {
+                $mform->addElement('html', '<option value="' . (int)$group->id . '">' .
+                    format_string($group->name) . '</option>');
+            }
+            $mform->addElement('html', '
+                                            </select>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>');
+        } else {
+            $mform->addElement('html', '<div class="alert alert-info">' . get_string('boardgroupsnogroups', 'kanban') . '</div>');
+        }
+        $mform->addElement('hidden', 'boardgroups', $serializedselectedgroups);
+        $mform->setType('boardgroups', PARAM_SEQUENCE);
+        $mform->addElement('hidden', 'boardgroupid', $primarygroupid);
+        $mform->setType('boardgroupid', PARAM_INT);
+        $mform->addElement('html', '</div>');
+        $PAGE->requires->js_call_amd('mod_kanban/boardgroupsetting', 'init', [[
+            'formid' => $mform->getAttribute('id'),
+            'boardmodefieldid' => 'id_boardmode',
+            'containerid' => 'kanban-boardgroups-selector',
+            'groupmodevalue' => constants::MOD_KANBAN_BOARDMODE_GROUP,
+        ]]);
 
         $userboards = [
             constants::MOD_KANBAN_NOUSERBOARDS => get_string('nouserboards', 'kanban'),
@@ -94,6 +159,60 @@ class mod_kanban_mod_form extends moodleform_mod {
         $this->standard_coursemodule_elements();
 
         $this->add_action_buttons(true, null, null);
+    }
+
+    /**
+     * Determine the initial group ids shown as selected in the board selector.
+     *
+     * Empty stored configuration means "all groups".
+     *
+     * @param array $groups Available course groups.
+     * @return array<int>
+     */
+    private function get_initial_board_group_ids(array $groups): array {
+        $groupids = [];
+        if (!empty($this->current->boardgroups)) {
+            $groupids = preg_split('/[;,]/', (string)$this->current->boardgroups, -1, PREG_SPLIT_NO_EMPTY);
+            $groupids = array_map('intval', $groupids);
+        }
+        if (empty($groupids) && !empty($groups)) {
+            $groupids = array_map(function($group) {
+                return (int)$group->id;
+            }, $groups);
+        }
+        $groupids = array_filter($groupids, function(int $groupid) use ($groups): bool {
+            return !empty($groups[$groupid]);
+        });
+        return array_values(array_unique($groupids));
+    }
+
+    /**
+     * Validate group-board selector settings.
+     *
+     * @param array $data Form data.
+     * @param array $files Uploaded files.
+     * @return array
+     */
+    public function validation($data, $files): array {
+        global $COURSE;
+
+        $errors = parent::validation($data, $files);
+
+        if ((int)($data['boardmode'] ?? 0) !== constants::MOD_KANBAN_BOARDMODE_GROUP) {
+            return $errors;
+        }
+
+        $courseid = !empty($this->current->course) ? $this->current->course : ($COURSE->id ?? 0);
+        $groups = [];
+        if (!empty($courseid)) {
+            $groups = groups_get_all_groups($courseid, 0, 0, 'g.id, g.name');
+        }
+
+        if (!empty($groups) && empty(trim((string)($data['boardgroups'] ?? '')))) {
+            $errors['boardmode'] = get_string('boardgroupsrequired', 'kanban');
+        }
+
+        return $errors;
     }
 
     /**
