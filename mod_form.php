@@ -78,6 +78,8 @@ class mod_kanban_mod_form extends moodleform_mod {
         });
         $serializedselectedgroups = implode(',', $selectedgroupids);
         $primarygroupid = !empty($selectedgroupids) ? reset($selectedgroupids) : 0;
+        $moveavailabletoselected = $this->get_move_groups_inline_js('availableboardgroups', 'id_selectedBoardGroups');
+        $moveselectedtoavailable = $this->get_move_groups_inline_js('id_selectedBoardGroups', 'availableboardgroups');
 
         $mform->addElement('header', 'groups', get_string('groups', 'group'));
         $mform->addElement('html', '<div id="kanban-boardgroups-selector">');
@@ -97,7 +99,8 @@ class mod_kanban_mod_form extends moodleform_mod {
                                     </tr>
                                     <tr class="row">
                                         <td style="vertical-align: top" class="col-5">
-                                            <select class="col-12" id="availableboardgroups" multiple size="10" style="width: 100%; min-width: 20rem;" ondblclick="window.modKanbanBoardGroupsMove(\'availableboardgroups\', \'id_selectedBoardGroups\');">');
+                                            <select class="col-12" id="availableboardgroups" multiple size="10" style="width: 100%; min-width: 20rem;" ondblclick="' .
+                                                s($moveavailabletoselected) . '">');
             foreach ($availablegroups as $group) {
                 $mform->addElement('html', '<option value="' . (int)$group->id . '">' .
                     format_string($group->name) . '</option>');
@@ -106,15 +109,18 @@ class mod_kanban_mod_form extends moodleform_mod {
                                             </select>
                                         </td>
                                         <td class="col-2">
-                                            <button id="addBoardGroupButton" type="button" class="btn btn-secondary mt-1" onclick="window.modKanbanBoardGroupsMove(\'availableboardgroups\', \'id_selectedBoardGroups\'); return false;">' .
+                                            <button id="addBoardGroupButton" type="button" class="btn btn-secondary mt-1" onclick="' .
+                                                s($moveavailabletoselected) . '">' .
                                                 get_string('boardgroupsadd', 'kanban') . '</button>
                                             <div>
-                                                <button id="removeBoardGroupButton" type="button" class="btn btn-secondary mt-1" onclick="window.modKanbanBoardGroupsMove(\'id_selectedBoardGroups\', \'availableboardgroups\'); return false;">' .
+                                                <button id="removeBoardGroupButton" type="button" class="btn btn-secondary mt-1" onclick="' .
+                                                    s($moveselectedtoavailable) . '">' .
                                                     get_string('boardgroupsremove', 'kanban') . '</button>
                                             </div>
                                         </td>
                                         <td style="vertical-align: top" class="col-5">
-                                            <select class="col-12" id="id_selectedBoardGroups" multiple size="10" style="width: 100%; min-width: 20rem;" ondblclick="window.modKanbanBoardGroupsMove(\'id_selectedBoardGroups\', \'availableboardgroups\');">');
+                                            <select class="col-12" id="id_selectedBoardGroups" multiple size="10" style="width: 100%; min-width: 20rem;" ondblclick="' .
+                                                s($moveselectedtoavailable) . '">');
             foreach ($selectedgroups as $group) {
                 $mform->addElement('html', '<option value="' . (int)$group->id . '">' .
                     format_string($group->name) . '</option>');
@@ -136,7 +142,7 @@ class mod_kanban_mod_form extends moodleform_mod {
         $mform->addElement('hidden', 'boardgroupid', $primarygroupid);
         $mform->setType('boardgroupid', PARAM_INT);
         $mform->addElement('html', '</div>');
-        $mform->addElement('html', '<script>' . $this->get_boardgroups_inline_js() . '</script>');
+        $mform->hideIf('groups', 'boardmode', 'neq', constants::MOD_KANBAN_BOARDMODE_GROUP);
 
         if (!empty(get_config('mod_kanban', 'enablehistory'))) {
             $mform->addElement('advcheckbox', 'history', get_string('enablehistory', 'mod_kanban'));
@@ -183,81 +189,27 @@ class mod_kanban_mod_form extends moodleform_mod {
     }
 
     /**
-     * Build inline JS for the board-group selector on the mod form.
+     * Build inline JS used by add/remove buttons to move group options and sync hidden fields.
      *
+     * @param string $sourceid Source select id.
+     * @param string $targetid Target select id.
      * @return string
      */
-    private function get_boardgroups_inline_js(): string {
-        $groupmodevalue = constants::MOD_KANBAN_BOARDMODE_GROUP;
-        return <<<JS
-(function() {
-    const init = function() {
-        const availableSelect = document.getElementById('availableboardgroups');
-        const selectedSelect = document.getElementById('id_selectedBoardGroups');
-        const boardgroupsInput = document.getElementById('id_boardgroups');
-        const boardgroupidInput = document.getElementById('id_boardgroupid');
-        const boardmodeField = document.getElementById('id_boardmode');
-        const container = document.getElementById('kanban-boardgroups-selector');
-        const groupsSection = document.getElementById('id_groups') || container.closest('fieldset') || container;
-        const form = boardgroupsInput ? boardgroupsInput.closest('form') : null;
-
-        if (!availableSelect || !selectedSelect || !boardgroupsInput || !boardgroupidInput || !boardmodeField || !container) {
-            return;
-        }
-
-        const sortOptions = function(select) {
-        Array.from(select.options)
-            .sort((a, b) => a.text.localeCompare(b.text))
-            .forEach((option) => select.appendChild(option));
-        };
-
-        const syncInputs = function() {
-            const selectedValues = Array.from(selectedSelect.options).map((option) => option.value);
-            boardgroupsInput.value = selectedValues.join(',');
-            boardgroupidInput.value = selectedValues.length ? selectedValues[0] : 0;
-        };
-
-        window.modKanbanBoardGroupsMove = function(sourceId, targetId) {
-            const source = document.getElementById(sourceId);
-            const target = document.getElementById(targetId);
-            if (!source || !target) {
-                return false;
-            }
-            let selectedOptions = Array.from(source.selectedOptions);
-            if (!selectedOptions.length && source.selectedIndex >= 0) {
-                selectedOptions = [source.options[source.selectedIndex]];
-            }
-            selectedOptions.forEach((option) => {
-                option.selected = false;
-                target.appendChild(option);
-            });
-            sortOptions(source);
-            sortOptions(target);
-            syncInputs();
-            return false;
-        };
-
-        const toggleVisibility = function() {
-            const visible = String(boardmodeField.value) === String($groupmodevalue);
-            groupsSection.style.display = visible ? '' : 'none';
-        };
-
-        boardmodeField.addEventListener('change', toggleVisibility);
-        if (form) {
-            form.addEventListener('submit', syncInputs);
-        }
-
-        syncInputs();
-        toggleVisibility();
-    };
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-})();
-JS;
+    private function get_move_groups_inline_js(string $sourceid, string $targetid): string {
+        return "var s=document.getElementById('{$sourceid}');" .
+            "var t=document.getElementById('{$targetid}');" .
+            "var selected=document.getElementById('id_selectedBoardGroups');" .
+            "if(!s||!t||!selected){return false;}" .
+            "var options=Array.from(s.selectedOptions);" .
+            "if(!options.length&&s.selectedIndex>=0){options=[s.options[s.selectedIndex]];}" .
+            "options.forEach(function(o){o.selected=false;t.appendChild(o);});" .
+            "[s,t].forEach(function(x){Array.from(x.options).sort(function(a,b){return a.text.localeCompare(b.text);})" .
+            ".forEach(function(o){x.appendChild(o);});});" .
+            "var hidden=document.getElementById('id_boardgroups');" .
+            "var first=document.getElementById('id_boardgroupid');" .
+            "if(hidden&&first){var vals=Array.from(selected.options).map(function(o){return o.value;});" .
+            "hidden.value=vals.join(',');first.value=vals.length?vals[0]:0;}" .
+            "return false;";
     }
 
     /**
