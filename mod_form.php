@@ -62,8 +62,8 @@ class mod_kanban_mod_form extends moodleform_mod {
         $mform->addHelpButton('userboards', 'userboards', 'mod_kanban');
 
         $boardmodes = [
-            constants::MOD_KANBAN_BOARDMODE_SHARED => get_string('boardmodeshared', 'kanban'),
             constants::MOD_KANBAN_BOARDMODE_GROUP => get_string('boardmodegroup', 'kanban'),
+            constants::MOD_KANBAN_BOARDMODE_SHARED => get_string('boardmodeshared', 'kanban'),
         ];
         $mform->addElement('select', 'boardmode', get_string('boardmode', 'kanban'), $boardmodes);
         $mform->setDefault('boardmode', constants::MOD_KANBAN_BOARDMODE_GROUP);
@@ -97,7 +97,7 @@ class mod_kanban_mod_form extends moodleform_mod {
                                     </tr>
                                     <tr class="row">
                                         <td style="vertical-align: top" class="col-5">
-                                            <select class="col-12" id="availableboardgroups" multiple size="10" style="width: 100%; min-width: 20rem;">');
+                                            <select class="col-12" id="availableboardgroups" multiple size="10" style="width: 100%; min-width: 20rem;" ondblclick="window.modKanbanBoardGroupsMove(\'availableboardgroups\', \'id_selectedBoardGroups\');">');
             foreach ($availablegroups as $group) {
                 $mform->addElement('html', '<option value="' . (int)$group->id . '">' .
                     format_string($group->name) . '</option>');
@@ -106,15 +106,15 @@ class mod_kanban_mod_form extends moodleform_mod {
                                             </select>
                                         </td>
                                         <td class="col-2">
-                                            <button id="addBoardGroupButton" type="button" class="btn btn-secondary mt-1">' .
+                                            <button id="addBoardGroupButton" type="button" class="btn btn-secondary mt-1" onclick="window.modKanbanBoardGroupsMove(\'availableboardgroups\', \'id_selectedBoardGroups\'); return false;">' .
                                                 get_string('boardgroupsadd', 'kanban') . '</button>
                                             <div>
-                                                <button id="removeBoardGroupButton" type="button" class="btn btn-secondary mt-1">' .
+                                                <button id="removeBoardGroupButton" type="button" class="btn btn-secondary mt-1" onclick="window.modKanbanBoardGroupsMove(\'id_selectedBoardGroups\', \'availableboardgroups\'); return false;">' .
                                                     get_string('boardgroupsremove', 'kanban') . '</button>
                                             </div>
                                         </td>
                                         <td style="vertical-align: top" class="col-5">
-                                            <select class="col-12" id="id_selectedBoardGroups" multiple size="10" style="width: 100%; min-width: 20rem;">');
+                                            <select class="col-12" id="id_selectedBoardGroups" multiple size="10" style="width: 100%; min-width: 20rem;" ondblclick="window.modKanbanBoardGroupsMove(\'id_selectedBoardGroups\', \'availableboardgroups\');">');
             foreach ($selectedgroups as $group) {
                 $mform->addElement('html', '<option value="' . (int)$group->id . '">' .
                     format_string($group->name) . '</option>');
@@ -193,12 +193,11 @@ class mod_kanban_mod_form extends moodleform_mod {
 (function() {
     const availableSelect = document.getElementById('availableboardgroups');
     const selectedSelect = document.getElementById('id_selectedBoardGroups');
-    const addBtn = document.getElementById('addBoardGroupButton');
-    const removeBtn = document.getElementById('removeBoardGroupButton');
     const boardgroupsInput = document.getElementById('id_boardgroups');
     const boardgroupidInput = document.getElementById('id_boardgroupid');
     const boardmodeField = document.getElementById('id_boardmode');
     const container = document.getElementById('kanban-boardgroups-selector');
+    const headerContainer = container ? container.previousElementSibling : null;
     const form = boardgroupsInput ? boardgroupsInput.closest('form') : null;
 
     if (!availableSelect || !selectedSelect || !boardgroupsInput || !boardgroupidInput || !boardmodeField || !container) {
@@ -217,7 +216,12 @@ class mod_kanban_mod_form extends moodleform_mod {
         boardgroupidInput.value = selectedValues.length ? selectedValues[0] : 0;
     };
 
-    const moveSelected = function(source, target) {
+    window.modKanbanBoardGroupsMove = function(sourceId, targetId) {
+        const source = document.getElementById(sourceId);
+        const target = document.getElementById(targetId);
+        if (!source || !target) {
+            return;
+        }
         let selectedOptions = Array.from(source.selectedOptions);
         if (!selectedOptions.length && source.selectedIndex >= 0) {
             selectedOptions = [source.options[source.selectedIndex]];
@@ -232,28 +236,12 @@ class mod_kanban_mod_form extends moodleform_mod {
     };
 
     const toggleVisibility = function() {
-        container.style.display = String(boardmodeField.value) === String($groupmodevalue) ? '' : 'none';
+        const visible = String(boardmodeField.value) === String($groupmodevalue);
+        container.style.display = visible ? '' : 'none';
+        if (headerContainer) {
+            headerContainer.style.display = visible ? '' : 'none';
+        }
     };
-
-    addBtn.addEventListener('click', function(event) {
-        event.preventDefault();
-        moveSelected(availableSelect, selectedSelect);
-    });
-
-    removeBtn.addEventListener('click', function(event) {
-        event.preventDefault();
-        moveSelected(selectedSelect, availableSelect);
-    });
-
-    availableSelect.addEventListener('dblclick', function(event) {
-        event.preventDefault();
-        moveSelected(availableSelect, selectedSelect);
-    });
-
-    selectedSelect.addEventListener('dblclick', function(event) {
-        event.preventDefault();
-        moveSelected(selectedSelect, availableSelect);
-    });
 
     boardmodeField.addEventListener('change', toggleVisibility);
     if (form) {
