@@ -307,6 +307,12 @@ class boardmanager {
             }
             $seen[$boardid] = true;
             $board = helper::get_cached_board($boardid);
+            if (!empty($board->groupid)) {
+                $seen['group:' . (int)$board->groupid] = true;
+            }
+            if (!empty($board->userid)) {
+                $seen['user:' . (int)$board->userid] = true;
+            }
             $items[] = [
                 'id' => (int)$board->id,
                 'label' => $this->get_board_selector_label($board),
