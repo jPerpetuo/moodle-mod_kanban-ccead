@@ -453,7 +453,7 @@ class get_kanban_content extends external_api {
 
             $boardselectorboards = $boardmanager->get_board_selector_items(
                 (int)$selectorcurrentgroupid,
-                !empty($groupmode) && $canaccessotherboards && $boardmode == constants::MOD_KANBAN_BOARDMODE_GROUP,
+                $canaccessotherboards && $boardmode == constants::MOD_KANBAN_BOARDMODE_GROUP,
                 !empty($kanban->userboards)
             );
             if (!empty($boardselectorboards)) {

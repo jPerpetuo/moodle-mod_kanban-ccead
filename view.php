@@ -87,12 +87,12 @@ if (empty($boardid)) {
         $groupid = 0;
 
         if ($canaccessotherboards) {
-            $allowedgroups = groups_get_activity_allowed_groups($cm);
+            $allowedgroups = $boardmanager->get_available_board_groups();
         }
 
         if ($canaccessotherboards && !empty($requestedgroupid) && !empty($allowedgroups[$requestedgroupid])) {
             $groupid = $requestedgroupid;
-        } else if (!empty($defaultgroupid)) {
+        } else if (!empty($defaultgroupid) && !empty($allowedgroups[$defaultgroupid])) {
             $groupid = $defaultgroupid;
         } else if (!empty($currentgroupid)) {
             $groupid = $currentgroupid;

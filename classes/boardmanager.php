@@ -249,7 +249,7 @@ class boardmanager {
             return [];
         }
 
-        $groups = groups_get_activity_allowed_groups($this->cminfo);
+        $groups = $this->get_available_board_groups();
         if (empty($groups)) {
             return [];
         }
@@ -299,6 +299,8 @@ class boardmanager {
 
         $items = [];
         $seen = [];
+        $hidecourseboard = (int)($this->kanban->boardmode ?? constants::MOD_KANBAN_BOARDMODE_SHARED) ===
+            constants::MOD_KANBAN_BOARDMODE_GROUP;
         $addboard = function (int $boardid) use (&$items, &$seen): void {
             if (empty($boardid) || isset($seen[$boardid])) {
                 return;
@@ -335,7 +337,9 @@ class boardmanager {
         };
 
         $addboard($this->board->id);
-        $addboard($this->get_or_create_board());
+        if (!$hidecourseboard) {
+            $addboard($this->get_or_create_board());
+        }
 
         if (!empty($currentgroupid)) {
             $addboard($this->get_or_create_board(0, $currentgroupid));
@@ -346,7 +350,7 @@ class boardmanager {
         }
 
         if ($includeallgroups && !empty($this->cminfo)) {
-            $groups = groups_get_activity_allowed_groups($this->cminfo);
+            $groups = $this->get_available_board_groups();
             foreach ($groups as $group) {
                 if ((int)$group->id === (int)$currentgroupid) {
                     continue;
@@ -366,6 +370,26 @@ class boardmanager {
         });
 
         return $items;
+    }
+
+    /**
+     * Return the groups that should be available for group boards.
+     *
+     * Prefer the groups that Moodle exposes for the activity. If the activity
+     * group mode is disabled and Moodle returns none, fall back to all course
+     * groups so the kanban group-board mode still has usable targets.
+     *
+     * @return array<int, stdClass>
+     */
+    public function get_available_board_groups(): array {
+        $groups = [];
+        if (!empty($this->cminfo)) {
+            $groups = groups_get_activity_allowed_groups($this->cminfo);
+        }
+        if (empty($groups) && !empty($this->course->id)) {
+            $groups = groups_get_all_groups((int)$this->course->id, 0, 0, 'g.id, g.name');
+        }
+        return $groups ?: [];
     }
 
     /**
