@@ -194,12 +194,4 @@ $functions = [
         'ajax'        => true,
         'capabilities' => 'mod/kanban:addcard',
     ],
-    'mod_kanban_update_card_title' => [
-        'classname'   => 'mod_kanban\external\change_kanban_content',
-        'methodname'  => 'update_card_title',
-        'description' => 'Updates the title of a card within the board',
-        'type'        => 'write',
-        'ajax'        => true,
-        'capabilities' => 'mod/kanban:manageassignedcards, mod/kanban:manageallcards',
-    ],
 ];

@@ -120,16 +120,6 @@ export default class {
     }
 
     /**
-     * Update the title of a card.
-     * @param {*} stateManager StateManager instance.
-     * @param {number} cardId Id of the card.
-     * @param {string} title New title.
-     */
-    async updateCardTitle(stateManager, cardId, title) {
-        await this._sendChange('update_card_title', stateManager, {cardid: cardId, title: title});
-    }
-
-    /**
      * Locks a column.
      * @param {*} stateManager StateManager instance
      * @param {number} columnId Id of the column to lock

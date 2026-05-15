@@ -49,10 +49,6 @@ export default class extends KanbanComponent {
         second: 1000
     };
 
-    _titleEditing = false;
-    _titleSaving = false;
-    _titleOriginalValue = '';
-
     /**
      * Function to initialize component, called by mustache template.
      * @param {*} target The id of the HTMLElement to attach to
@@ -185,26 +181,6 @@ export default class extends KanbanComponent {
             'click',
             this._showDetailsModal
         );
-        this.addEventListener(
-            this.getElement().querySelector('.mod_kanban_card_title_link'),
-            'click',
-            this._startTitleEdit
-        );
-        this.addEventListener(
-            this.getElement().querySelector('.mod_kanban_card_title_textarea'),
-            'input',
-            this._syncTitleEditorHeight
-        );
-        this.addEventListener(
-            this.getElement().querySelector('.mod_kanban_card_title_textarea'),
-            'keydown',
-            this._handleTitleEditorKeydown
-        );
-        this.addEventListener(
-            this.getElement().querySelector('.mod_kanban_card_title_textarea'),
-            'blur',
-            this._handleTitleEditorBlur
-        );
 
         this.draggable = false;
         this.dragdrop = new DragDrop(this);
@@ -214,117 +190,6 @@ export default class extends KanbanComponent {
         this.userid = state.board.userid;
         this.groupid = state.board.groupid;
         this._dueDateFormat();
-    }
-
-    /**
-     * Open the custom title editor.
-     * @param {*} event Click event.
-     */
-    _startTitleEdit(event) {
-        event.preventDefault();
-        if (this._titleEditing) {
-            return;
-        }
-        const cardstate = this.reactive.state.cards.get(this.id);
-        if (!cardstate || !cardstate.canedit || cardstate.completed == 1) {
-            return;
-        }
-        const display = this.getElement().querySelector('.mod_kanban_card_title_display');
-        const editor = this.getElement().querySelector('.mod_kanban_card_title_editor');
-        const textarea = this.getElement().querySelector('.mod_kanban_card_title_textarea');
-        this._titleOriginalValue = display.dataset.value || display.textContent.trim();
-        textarea.value = this._titleOriginalValue;
-        this._titleEditing = true;
-        display.classList.add('hidden');
-        editor.classList.remove('hidden');
-        this.getElement().classList.add('mod_kanban_title_editing');
-        this.dragdrop.setDraggable(false);
-        this._syncTitleEditorHeight();
-        textarea.focus();
-        textarea.setSelectionRange(textarea.value.length, textarea.value.length);
-    }
-
-    /**
-     * Resize the title editor to fit its content.
-     */
-    _syncTitleEditorHeight() {
-        const textarea = this.getElement().querySelector('.mod_kanban_card_title_textarea');
-        if (!textarea) {
-            return;
-        }
-        textarea.style.height = 'auto';
-        textarea.style.height = `${Math.max(textarea.scrollHeight, 88)}px`;
-    }
-
-    /**
-     * Handle keyboard shortcuts in the custom title editor.
-     * @param {*} event Keyboard event.
-     */
-    _handleTitleEditorKeydown(event) {
-        if (event.key === 'Escape') {
-            event.preventDefault();
-            this._closeTitleEditor(false);
-            return;
-        }
-        if (event.key === 'Enter' && event.ctrlKey) {
-            event.preventDefault();
-            this._saveTitleEditor();
-        }
-    }
-
-    /**
-     * Save title when the editor loses focus.
-     */
-    _handleTitleEditorBlur() {
-        if (!this._titleEditing || this._titleSaving) {
-            return;
-        }
-        this._saveTitleEditor();
-    }
-
-    /**
-     * Save the custom title editor value.
-     */
-    _saveTitleEditor() {
-        const textarea = this.getElement().querySelector('.mod_kanban_card_title_textarea');
-        if (!textarea) {
-            return;
-        }
-        const normalized = textarea.value
-            .replace(/\r?\n+/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim();
-        if (normalized === '' || normalized === this._titleOriginalValue) {
-            this._closeTitleEditor(false);
-            return;
-        }
-        this._titleSaving = true;
-        this.reactive.dispatch('updateCardTitle', this.id, normalized);
-        this._closeTitleEditor(true);
-    }
-
-    /**
-     * Hide the custom title editor and restore default interactions.
-     * @param {boolean} keepvalue Whether the edited value should be shown immediately.
-     */
-    _closeTitleEditor(keepvalue) {
-        const display = this.getElement().querySelector('.mod_kanban_card_title_display');
-        const editor = this.getElement().querySelector('.mod_kanban_card_title_editor');
-        const textarea = this.getElement().querySelector('.mod_kanban_card_title_textarea');
-        if (keepvalue && textarea) {
-            const normalized = textarea.value
-                .replace(/\r?\n+/g, ' ')
-                .replace(/\s+/g, ' ')
-                .trim() || this._titleOriginalValue;
-            display.dataset.value = normalized;
-            display.querySelector('a').textContent = normalized;
-        }
-        editor.classList.add('hidden');
-        display.classList.remove('hidden');
-        this.getElement().classList.remove('mod_kanban_title_editing');
-        this._titleEditing = false;
-        this._titleSaving = false;
-        this.checkEditing();
     }
 
     /**
@@ -596,11 +461,13 @@ export default class extends KanbanComponent {
         this.toggleClass(element.completed == 1, 'mod_kanban_closed');
         // Update title (also in modals).
         if (element.title !== undefined) {
+            // For Moodle inplace editing title is once needed plain and once with html entities encoded.
+            // This avoids double encoding of html entities as the value of "data-value" is exactly what is shown
+            // in the input field when clicking on the inplace editable.
             let doc = new DOMParser().parseFromString(element.title, 'text/html');
             this.getElement(selectors.INPLACEEDITABLE).setAttribute('data-value', doc.documentElement.textContent);
             this.getElement(selectors.INPLACEEDITABLE).querySelector('a').innerHTML = element.title;
             this.getElement(selectors.DISCUSSIONMODALTITLE).innerHTML = element.title;
-            this._titleOriginalValue = doc.documentElement.textContent;
         }
         this.toggleClass(element.hasdescription, 'mod_kanban_hasdescription');
         this.toggleClass(element.hasattachment, 'mod_kanban_hasattachment');
@@ -726,13 +593,12 @@ export default class extends KanbanComponent {
             this.draggable = false;
             this.dragdrop.setDraggable(false);
         }
-        const titledisplay = this.getElement().querySelector('.mod_kanban_card_title_display');
-        if (titledisplay) {
-            titledisplay.classList.toggle(
-                'mod_kanban_title_editable',
-                state.cards.get(this.id).completed != 1 && state.cards.get(this.id).canedit
-            );
+        if (state.cards.get(this.id).completed != 1 && state.cards.get(this.id).canedit) {
+            this.getElement(selectors.INPLACEEDITABLE).setAttribute('data-inplaceeditable', '1');
+        } else {
+            this.getElement(selectors.INPLACEEDITABLE).removeAttribute('data-inplaceeditable');
         }
+
         this.toggleClass(state.cards.get(this.id).canedit, 'mod_kanban_canedit');
     }
 
