@@ -47,14 +47,6 @@ class mod_kanban_mod_form extends moodleform_mod {
 
         $this->standard_intro_elements(get_string('description'));
 
-        $boardmodes = [
-            constants::MOD_KANBAN_BOARDMODE_SHARED => get_string('boardmodeshared', 'kanban'),
-            constants::MOD_KANBAN_BOARDMODE_GROUP => get_string('boardmodegroup', 'kanban'),
-        ];
-        $mform->addElement('select', 'boardmode', get_string('boardmode', 'kanban'), $boardmodes);
-        $mform->setDefault('boardmode', constants::MOD_KANBAN_BOARDMODE_SHARED);
-        $mform->addHelpButton('boardmode', 'boardmode', 'kanban');
-
         $courseid = !empty($this->current->course) ? $this->current->course : ($COURSE->id ?? 0);
         $groups = [];
         if (!empty($courseid)) {
@@ -143,6 +135,14 @@ class mod_kanban_mod_form extends moodleform_mod {
         $mform->addElement('select', 'userboards', get_string('userboards', 'kanban'), $userboards);
         $mform->addHelpButton('userboards', 'userboards', 'mod_kanban');
 
+        $boardmodes = [
+            constants::MOD_KANBAN_BOARDMODE_SHARED => get_string('boardmodeshared', 'kanban'),
+            constants::MOD_KANBAN_BOARDMODE_GROUP => get_string('boardmodegroup', 'kanban'),
+        ];
+        $mform->addElement('select', 'boardmode', get_string('boardmode', 'kanban'), $boardmodes);
+        $mform->setDefault('boardmode', constants::MOD_KANBAN_BOARDMODE_GROUP);
+        $mform->addHelpButton('boardmode', 'boardmode', 'kanban');
+
         if (!empty(get_config('mod_kanban', 'enablehistory'))) {
             $mform->addElement('advcheckbox', 'history', get_string('enablehistory', 'mod_kanban'));
             $mform->addHelpButton('history', 'enablehistory', 'mod_kanban');
@@ -176,7 +176,7 @@ class mod_kanban_mod_form extends moodleform_mod {
             $groupids = preg_split('/[;,]/', (string)$this->current->boardgroups, -1, PREG_SPLIT_NO_EMPTY);
             $groupids = array_map('intval', $groupids);
         }
-        if (empty($groupids) && !empty($groups)) {
+        if (empty($groupids) && !empty($this->_instance) && !empty($groups)) {
             $groupids = array_map(function($group) {
                 return (int)$group->id;
             }, $groups);

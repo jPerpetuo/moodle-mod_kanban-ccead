@@ -60,9 +60,9 @@ define(function() {
             const boardgroupidInput = document.getElementById('id_boardgroupid');
             const boardmodeField = document.getElementById(param.boardmodefieldid);
             const container = document.getElementById(param.containerid);
-            const form = document.getElementById(param.formid);
+            const form = document.getElementById(param.formid) || (selectedSelect ? selectedSelect.closest('form') : null);
 
-            if (!selectedSelect || !boardgroupsInput || !boardgroupidInput || !boardmodeField || !container || !form) {
+            if (!selectedSelect || !boardgroupsInput || !boardgroupidInput || !boardmodeField || !container) {
                 return;
             }
 
@@ -106,7 +106,9 @@ define(function() {
             });
 
             boardmodeField.addEventListener('change', toggleVisibility);
-            form.addEventListener('submit', syncInputs);
+            if (form) {
+                form.addEventListener('submit', syncInputs);
+            }
 
             syncInputs();
             toggleVisibility();
