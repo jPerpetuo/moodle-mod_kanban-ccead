@@ -53,6 +53,22 @@ class mod_kanban_mod_form extends moodleform_mod {
             $groups = groups_get_all_groups($courseid, 0, 0, 'g.id, g.name');
         }
 
+        $userboards = [
+            constants::MOD_KANBAN_NOUSERBOARDS => get_string('nouserboards', 'kanban'),
+            constants::MOD_KANBAN_USERBOARDS_ENABLED => get_string('userboardsenabled', 'kanban'),
+            constants::MOD_KANBAN_USERBOARDS_ONLY => get_string('userboardsonly', 'kanban'),
+        ];
+        $mform->addElement('select', 'userboards', get_string('userboards', 'kanban'), $userboards);
+        $mform->addHelpButton('userboards', 'userboards', 'mod_kanban');
+
+        $boardmodes = [
+            constants::MOD_KANBAN_BOARDMODE_SHARED => get_string('boardmodeshared', 'kanban'),
+            constants::MOD_KANBAN_BOARDMODE_GROUP => get_string('boardmodegroup', 'kanban'),
+        ];
+        $mform->addElement('select', 'boardmode', get_string('boardmode', 'kanban'), $boardmodes);
+        $mform->setDefault('boardmode', constants::MOD_KANBAN_BOARDMODE_GROUP);
+        $mform->addHelpButton('boardmode', 'boardmode', 'kanban');
+
         $selectedgroupids = $this->get_initial_board_group_ids($groups);
         $availablegroups = array_filter($groups, function($group) use ($selectedgroupids) {
             return !in_array((int)$group->id, $selectedgroupids, true);
@@ -120,28 +136,7 @@ class mod_kanban_mod_form extends moodleform_mod {
         $mform->addElement('hidden', 'boardgroupid', $primarygroupid);
         $mform->setType('boardgroupid', PARAM_INT);
         $mform->addElement('html', '</div>');
-        $PAGE->requires->js_call_amd('mod_kanban/boardgroupsetting', 'init', [[
-            'formid' => $mform->getAttribute('id'),
-            'boardmodefieldid' => 'id_boardmode',
-            'containerid' => 'kanban-boardgroups-selector',
-            'groupmodevalue' => constants::MOD_KANBAN_BOARDMODE_GROUP,
-        ]]);
-
-        $userboards = [
-            constants::MOD_KANBAN_NOUSERBOARDS => get_string('nouserboards', 'kanban'),
-            constants::MOD_KANBAN_USERBOARDS_ENABLED => get_string('userboardsenabled', 'kanban'),
-            constants::MOD_KANBAN_USERBOARDS_ONLY => get_string('userboardsonly', 'kanban'),
-        ];
-        $mform->addElement('select', 'userboards', get_string('userboards', 'kanban'), $userboards);
-        $mform->addHelpButton('userboards', 'userboards', 'mod_kanban');
-
-        $boardmodes = [
-            constants::MOD_KANBAN_BOARDMODE_SHARED => get_string('boardmodeshared', 'kanban'),
-            constants::MOD_KANBAN_BOARDMODE_GROUP => get_string('boardmodegroup', 'kanban'),
-        ];
-        $mform->addElement('select', 'boardmode', get_string('boardmode', 'kanban'), $boardmodes);
-        $mform->setDefault('boardmode', constants::MOD_KANBAN_BOARDMODE_GROUP);
-        $mform->addHelpButton('boardmode', 'boardmode', 'kanban');
+        $PAGE->requires->js_init_code($this->get_boardgroups_inline_js());
 
         if (!empty(get_config('mod_kanban', 'enablehistory'))) {
             $mform->addElement('advcheckbox', 'history', get_string('enablehistory', 'mod_kanban'));
@@ -185,6 +180,90 @@ class mod_kanban_mod_form extends moodleform_mod {
             return !empty($groups[$groupid]);
         });
         return array_values(array_unique($groupids));
+    }
+
+    /**
+     * Build inline JS for the board-group selector on the mod form.
+     *
+     * @return string
+     */
+    private function get_boardgroups_inline_js(): string {
+        $groupmodevalue = constants::MOD_KANBAN_BOARDMODE_GROUP;
+        return <<<JS
+(function() {
+    const availableSelect = document.getElementById('availableboardgroups');
+    const selectedSelect = document.getElementById('id_selectedBoardGroups');
+    const addBtn = document.getElementById('addBoardGroupButton');
+    const removeBtn = document.getElementById('removeBoardGroupButton');
+    const boardgroupsInput = document.getElementById('id_boardgroups');
+    const boardgroupidInput = document.getElementById('id_boardgroupid');
+    const boardmodeField = document.getElementById('id_boardmode');
+    const container = document.getElementById('kanban-boardgroups-selector');
+    const form = boardgroupsInput ? boardgroupsInput.closest('form') : null;
+
+    if (!availableSelect || !selectedSelect || !boardgroupsInput || !boardgroupidInput || !boardmodeField || !container) {
+        return;
+    }
+
+    const sortOptions = function(select) {
+        Array.from(select.options)
+            .sort((a, b) => a.text.localeCompare(b.text))
+            .forEach((option) => select.appendChild(option));
+    };
+
+    const syncInputs = function() {
+        const selectedValues = Array.from(selectedSelect.options).map((option) => option.value);
+        boardgroupsInput.value = selectedValues.join(',');
+        boardgroupidInput.value = selectedValues.length ? selectedValues[0] : 0;
+    };
+
+    const moveSelected = function(source, target) {
+        let selectedOptions = Array.from(source.selectedOptions);
+        if (!selectedOptions.length && source.selectedIndex >= 0) {
+            selectedOptions = [source.options[source.selectedIndex]];
+        }
+        selectedOptions.forEach((option) => {
+            option.selected = false;
+            target.appendChild(option);
+        });
+        sortOptions(source);
+        sortOptions(target);
+        syncInputs();
+    };
+
+    const toggleVisibility = function() {
+        container.style.display = String(boardmodeField.value) === String($groupmodevalue) ? '' : 'none';
+    };
+
+    addBtn.addEventListener('click', function(event) {
+        event.preventDefault();
+        moveSelected(availableSelect, selectedSelect);
+    });
+
+    removeBtn.addEventListener('click', function(event) {
+        event.preventDefault();
+        moveSelected(selectedSelect, availableSelect);
+    });
+
+    availableSelect.addEventListener('dblclick', function(event) {
+        event.preventDefault();
+        moveSelected(availableSelect, selectedSelect);
+    });
+
+    selectedSelect.addEventListener('dblclick', function(event) {
+        event.preventDefault();
+        moveSelected(selectedSelect, availableSelect);
+    });
+
+    boardmodeField.addEventListener('change', toggleVisibility);
+    if (form) {
+        form.addEventListener('submit', syncInputs);
+    }
+
+    syncInputs();
+    toggleVisibility();
+})();
+JS;
     }
 
     /**
