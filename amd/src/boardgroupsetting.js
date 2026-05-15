@@ -38,11 +38,16 @@ define(function() {
      * @param {HTMLSelectElement} target
      */
     const moveSelected = function(source, target) {
-        Array.from(source.selectedOptions).forEach((option) => {
+        let selectedOptions = Array.from(source.selectedOptions);
+        if (!selectedOptions.length && source.selectedIndex >= 0) {
+            selectedOptions = [source.options[source.selectedIndex]];
+        }
+        selectedOptions.forEach((option) => {
             option.selected = false;
             target.appendChild(option);
         });
         sortOptions(target);
+        sortOptions(source);
     };
 
     return {
@@ -72,24 +77,28 @@ define(function() {
             };
 
             if (availableSelect && addBtn) {
-                addBtn.addEventListener('click', function() {
+                addBtn.addEventListener('click', function(event) {
+                    event.preventDefault();
                     moveSelected(availableSelect, selectedSelect);
                     syncInputs();
                 });
-                availableSelect.addEventListener('dblclick', function() {
+                availableSelect.addEventListener('dblclick', function(event) {
+                    event.preventDefault();
                     moveSelected(availableSelect, selectedSelect);
                     syncInputs();
                 });
             }
 
             if (removeBtn) {
-                removeBtn.addEventListener('click', function() {
+                removeBtn.addEventListener('click', function(event) {
+                    event.preventDefault();
                     moveSelected(selectedSelect, availableSelect);
                     syncInputs();
                 });
             }
 
-            selectedSelect.addEventListener('dblclick', function() {
+            selectedSelect.addEventListener('dblclick', function(event) {
+                event.preventDefault();
                 if (availableSelect) {
                     moveSelected(selectedSelect, availableSelect);
                     syncInputs();

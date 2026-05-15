@@ -80,7 +80,7 @@ class mod_kanban_mod_form extends moodleform_mod {
                         <div class="felement fselect">
                             <div class="mb-2">' . get_string('boardgroupsdescription', 'kanban') . '</div>
                             <div class="tablecontainer">
-                                <table class="table-reboot">
+                                <table class="table-reboot" style="width: 100%; max-width: 56rem;">
                                     <tr class="row">
                                         <th class="col-lg-5">' . get_string('boardgroupsavailable', 'kanban') . '</th>
                                         <th class="col-lg-2"></th>
@@ -88,7 +88,7 @@ class mod_kanban_mod_form extends moodleform_mod {
                                     </tr>
                                     <tr class="row">
                                         <td style="vertical-align: top" class="col-5">
-                                            <select class="col-12" id="availableboardgroups" multiple size="10">');
+                                            <select class="col-12" id="availableboardgroups" multiple size="10" style="width: 100%; min-width: 18rem;">');
             foreach ($availablegroups as $group) {
                 $mform->addElement('html', '<option value="' . (int)$group->id . '">' .
                     format_string($group->name) . '</option>');
@@ -105,7 +105,7 @@ class mod_kanban_mod_form extends moodleform_mod {
                                             </div>
                                         </td>
                                         <td style="vertical-align: top" class="col-5">
-                                            <select class="col-12" id="id_selectedBoardGroups" multiple size="10">');
+                                            <select class="col-12" id="id_selectedBoardGroups" multiple size="10" style="width: 100%; min-width: 18rem;">');
             foreach ($selectedgroups as $group) {
                 $mform->addElement('html', '<option value="' . (int)$group->id . '">' .
                     format_string($group->name) . '</option>');
