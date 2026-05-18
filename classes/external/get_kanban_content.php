@@ -856,7 +856,7 @@ class get_kanban_content extends external_api {
 
         $formatter = new updateformatter();
         $kanban = $DB->get_record('kanban', ['id' => $cminfo->instance]);
-        if (!empty($kanban->history) && !empty(get_config('mod_kanban', 'enablehistory'))) {
+        if (!empty($kanban->history)) {
             $kanbanboard = helper::get_cached_board($boardid);
 
             helper::check_permissions_for_user_or_group($kanbanboard, $context, $cminfo, constants::MOD_KANBAN_VIEW);

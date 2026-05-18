@@ -1565,6 +1565,7 @@ a.mod_kanban_attachment_item {
     margin: .4rem 0 .75rem;
 }
 
+
 @media (max-width: 768px) {
     .mod_kanban_board_focus_head,
     .mod_kanban_board_focus_meta {

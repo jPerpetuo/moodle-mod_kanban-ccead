@@ -1569,7 +1569,7 @@ class boardmanager {
     public function write_history(string $action, int $type, array $data = [], int $columnid = 0, int $cardid = 0): void {
         global $DB, $USER;
 
-        if (empty($this->kanban->history) || empty(get_config('mod_kanban', 'enablehistory'))) {
+        if (empty($this->kanban->history)) {
             return;
         }
 

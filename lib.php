@@ -73,6 +73,10 @@ function kanban_update_instance($data): int {
  * @return void
  */
 function kanban_normalize_board_group_settings(stdClass &$data): void {
+    if (empty($data->usenumbers)) {
+        $data->linknumbers = 0;
+    }
+
     $selectedgroupids = [];
 
     // First preference: raw POST from the right-side selector.

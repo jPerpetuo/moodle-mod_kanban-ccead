@@ -74,9 +74,12 @@ class mod_kanban_mod_form extends moodleform_mod {
 
         $mform->addElement('advcheckbox', 'linknumbers', get_string('linknumbers', 'mod_kanban'));
         $mform->addHelpButton('linknumbers', 'linknumbers', 'mod_kanban');
-        $mform->hideIf('linknumbers', 'usenumbers', 'notchecked');
-        $mform->setDefault('linknumbers', 1);
+        $mform->disabledIf('linknumbers', 'usenumbers', 'notchecked');
+        $mform->setDefault('linknumbers', 0);
         $mform->setType('linknumbers', PARAM_INT);
+
+        $mform->addElement('advcheckbox', 'history', get_string('enablehistory', 'mod_kanban'));
+        $mform->addHelpButton('history', 'enablehistory', 'mod_kanban');
 
         $selectedgroupids = $this->get_initial_board_group_ids($groups);
         $availablegroups = array_filter($groups, function($group) use ($selectedgroupids) {
@@ -159,14 +162,24 @@ class mod_kanban_mod_form extends moodleform_mod {
             'groupmodevalue' => constants::MOD_KANBAN_BOARDMODE_GROUP,
         ]);
 
-        if (!empty(get_config('mod_kanban', 'enablehistory'))) {
-            $mform->addElement('advcheckbox', 'history', get_string('enablehistory', 'mod_kanban'));
-            $mform->addHelpButton('history', 'enablehistory', 'mod_kanban');
-        }
-
         $this->standard_coursemodule_elements();
 
         $this->add_action_buttons(true, null, null);
+    }
+
+    /**
+     * Preprocess form defaults before rendering.
+     *
+     * Ensures linknumbers stays unchecked whenever usenumbers is disabled.
+     *
+     * @param array $defaultvalues Default form values.
+     * @return void
+     */
+    public function data_preprocessing(&$defaultvalues): void {
+        parent::data_preprocessing($defaultvalues);
+        if (empty($defaultvalues['usenumbers'])) {
+            $defaultvalues['linknumbers'] = 0;
+        }
     }
 
     /**
