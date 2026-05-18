@@ -335,14 +335,20 @@ class boardmanager {
 
         $items = [];
         $seen = [];
+        $context = \context_module::instance($this->cmid);
+        $canaccessotherboards = has_capability('mod/kanban:viewallboards', $context) ||
+            has_capability('mod/kanban:editallboards', $context);
         $hidecourseboard = (int)($this->kanban->boardmode ?? constants::MOD_KANBAN_BOARDMODE_SHARED) ===
             constants::MOD_KANBAN_BOARDMODE_GROUP;
-        $addboard = function (int $boardid) use (&$items, &$seen): void {
+        $addboard = function (int $boardid) use (&$items, &$seen, $canaccessotherboards): void {
             if (empty($boardid) || isset($seen[$boardid])) {
                 return;
             }
             $seen[$boardid] = true;
             $board = helper::get_cached_board($boardid);
+            if (!$canaccessotherboards && !empty($board->groupid) && !groups_is_member((int)$board->groupid)) {
+                return;
+            }
             if (!empty($board->groupid)) {
                 $seen['group:' . (int)$board->groupid] = true;
             }

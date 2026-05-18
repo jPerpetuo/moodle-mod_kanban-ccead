@@ -25,9 +25,11 @@
         "managecolumns": false
     }
 }}
+{{#managecolumns}}
 <div class="mod_kanban_addcolumn_container col">
-    <button class="mod_kanban_addcolumn btn btn-link btn-add-content mod_kanban_addcard_link{{^managecolumns}} hidden{{/managecolumns}}" id="mod_kanban_addcolumn_{{id}}" data-action="add_column"{{#id}} data-id="{{id}}"{{/id}}>
+    <button class="mod_kanban_addcolumn btn btn-link btn-add-content mod_kanban_addcard_link" id="mod_kanban_addcolumn_{{id}}" data-action="add_column"{{#id}} data-id="{{id}}"{{/id}}>
         <span class="mod_kanban_addcolumn_icon"><i class="icon fa fa-plus" aria-hidden="true"></i></span>
         <span class="mod_kanban_addcolumn_label">{{#str}} addcolumnshort, mod_kanban {{/str}}</span>
     </button>
 </div>
+{{/managecolumns}}

@@ -85,25 +85,33 @@ if (empty($boardid) && !empty($userid) && !empty($kanban->userboards) && ($useri
 if (empty($boardid)) {
     if ($boardmode == constants::MOD_KANBAN_BOARDMODE_GROUP) {
         $groupid = 0;
-
-        if ($canaccessotherboards) {
-            $allowedgroups = $boardmanager->get_available_board_groups();
-        }
+        $allowedgroups = $boardmanager->get_available_board_groups();
 
         if ($canaccessotherboards && !empty($requestedgroupid) && !empty($allowedgroups[$requestedgroupid])) {
             $groupid = $requestedgroupid;
-        } else if (!empty($currentgroupid) && !empty($allowedgroups[$currentgroupid])) {
+        } else if (!empty($currentgroupid) && !empty($allowedgroups[$currentgroupid]) &&
+            ($canaccessotherboards || groups_is_member((int)$currentgroupid, $USER->id))) {
             $groupid = $currentgroupid;
-        } else if (!empty($defaultgroupid) && !empty($allowedgroups[$defaultgroupid])) {
+        } else if ($canaccessotherboards && !empty($defaultgroupid) && !empty($allowedgroups[$defaultgroupid])) {
             $groupid = $defaultgroupid;
         } else if ($canaccessotherboards && !empty($allowedgroups)) {
             $firstgroup = reset($allowedgroups);
             $groupid = $firstgroup->id;
+        } else if (!$canaccessotherboards && !empty($allowedgroups)) {
+            foreach ($allowedgroups as $allowedgroup) {
+                if (groups_is_member((int)$allowedgroup->id, $USER->id)) {
+                    $groupid = (int)$allowedgroup->id;
+                    break;
+                }
+            }
         }
 
         if (!empty($groupid)) {
             $boardid = $boardmanager->get_or_create_board(0, $groupid);
         } else {
+            if (!$canaccessotherboards) {
+                throw new moodle_exception('nogroupavailable', 'mod_kanban');
+            }
             $boardid = $boardmanager->get_or_create_board_for_mode($boardmode, $groupid);
         }
     } else {

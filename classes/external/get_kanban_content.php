@@ -429,11 +429,17 @@ class get_kanban_content extends external_api {
         if (!$asupdate) {
             $selectorcurrentgroupid = 0;
             if ($boardmode == constants::MOD_KANBAN_BOARDMODE_GROUP) {
-                // Keep the configured group board available in the selector even
-                // when the current board is the shared board or when Moodle
-                // activity group mode is disabled.
-                $selectorcurrentgroupid = $boardmanager->get_preferred_board_group_id();
-                if (empty($selectorcurrentgroupid)) {
+                if ($canaccessotherboards) {
+                    // Keep the configured group board available in the selector
+                    // for teachers/managers even when current board differs.
+                    $selectorcurrentgroupid = $boardmanager->get_preferred_board_group_id();
+                    if (empty($selectorcurrentgroupid)) {
+                        $selectorcurrentgroupid = (int)$currentgroupid;
+                    }
+                } else if (!empty($kanbanboard->groupid)) {
+                    // Students should only see their effective current group board.
+                    $selectorcurrentgroupid = (int)$kanbanboard->groupid;
+                } else {
                     $selectorcurrentgroupid = (int)$currentgroupid;
                 }
             }
