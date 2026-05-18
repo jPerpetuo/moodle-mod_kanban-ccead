@@ -232,7 +232,27 @@ function kanban_inplace_editable($itemtype, $itemid, $newvalue) {
         $boardmanager->update_column($itemid, ['title' => $newvalue]);
     }
 
-    return new \core\output\inplace_editable('mod_kanban', $itemtype, $itemid, true, s($newvalue), $newvalue, null, '');
+    // Return the persisted value (not the raw input) so UI updates immediately and consistently.
+    $persistedvalue = (string) $newvalue;
+    if ($itemtype == 'card') {
+        $updatedcard = $boardmanager->get_card($itemid);
+        $persistedvalue = html_entity_decode((string) $updatedcard->title, ENT_COMPAT, 'UTF-8');
+    }
+    if ($itemtype == 'column') {
+        $updatedcolumn = $boardmanager->get_column($itemid);
+        $persistedvalue = html_entity_decode((string) $updatedcolumn->title, ENT_COMPAT, 'UTF-8');
+    }
+
+    return new \core\output\inplace_editable(
+        'mod_kanban',
+        $itemtype,
+        $itemid,
+        true,
+        s($persistedvalue),
+        $persistedvalue,
+        null,
+        ''
+    );
 }
 
 /**

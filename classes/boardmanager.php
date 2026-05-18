@@ -1259,6 +1259,9 @@ class boardmanager {
         // Do some extra sanitizing.
         if (isset($data['title'])) {
             $data['title'] = s($data['title']);
+            if (trim((string) $data['title']) === '') {
+                $data['title'] = get_string('newcard', 'mod_kanban');
+            }
         }
         if (isset($data['description'])) {
             $data['description'] = clean_param($data['description'], PARAM_CLEANHTML);
@@ -1686,10 +1689,12 @@ class boardmanager {
         }
 
         if (
-            has_capability('mod/kanban:manageassignedcards', $context, $userid) &&
-                in_array($userid, $this->get_card_assignees($card->id))
+            has_capability('mod/kanban:manageassignedcards', $context, $userid)
         ) {
-            return true;
+            $assignees = $this->get_card_assignees($card->id);
+            if (empty($assignees) || in_array($userid, $assignees)) {
+                return true;
+            }
         }
 
         return false;

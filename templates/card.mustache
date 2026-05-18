@@ -85,5 +85,163 @@ require(['core/inplace_editable']);
 require(['mod_kanban/card'], function(component) {
     component.init('mod_kanban_card-{{id}}');
 });
+require(['core/ajax', 'core/notification'], function(Ajax, Notification) {
+    const card = document.getElementById('mod_kanban_card-{{id}}');
+    if (!card) {
+        return;
+    }
+
+    const inplace = card.querySelector('.mod_kanban_card_title .inplaceeditable');
+    const editlink = inplace ? inplace.querySelector('[data-inplaceeditablelink]') : null;
+    if (!inplace || !editlink) {
+        return;
+    }
+
+    let issaving = false;
+
+    const renderTitle = function(displayvalue) {
+        const safevalue = displayvalue || '';
+        inplace.setAttribute('data-value', safevalue);
+        inplace.innerHTML = '<a class="quickeditlink aalink" data-inplaceeditablelink="1">' + safevalue + '</a>';
+        const discussiontitle = card.querySelector('.mod_kanban_discussion_modal .modal-title');
+        if (discussiontitle) {
+            discussiontitle.innerHTML = safevalue;
+        }
+    };
+
+    const closeEditor = function(displayvalue, focuslink = true) {
+        renderTitle(displayvalue);
+        inplace.classList.remove('inplaceeditingon');
+        card.setAttribute('draggable', 'true');
+        card.removeAttribute('data-inplace-in-draggable');
+        if (focuslink) {
+            const refreshedlink = inplace.querySelector('[data-inplaceeditablelink]');
+            if (refreshedlink) {
+                refreshedlink.focus();
+            }
+        }
+    };
+
+    const saveTitle = function(newvalue) {
+        if (issaving) {
+            return;
+        }
+        issaving = true;
+        Ajax.call([{
+            methodname: 'core_update_inplace_editable',
+            args: {
+                component: 'mod_kanban',
+                itemtype: 'card',
+                itemid: '{{id}}',
+                value: newvalue,
+            },
+        }])[0].then((data) => {
+            const displayvalue = data.displayvalue !== undefined ? data.displayvalue : newvalue;
+            renderTitle(displayvalue);
+            issaving = false;
+            return;
+        }).fail((error) => {
+            Notification.exception(error);
+            issaving = false;
+        });
+    };
+
+    inplace.addEventListener('click', function(e) {
+        const clickedlink = e.target.closest('[data-inplaceeditablelink]');
+        if (!clickedlink) {
+            return;
+        }
+        if (!inplace.hasAttribute('data-inplaceeditable') || inplace.classList.contains('inplaceeditingon') || issaving) {
+            return;
+        }
+
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        const currentvalue = inplace.getAttribute('data-value') || clickedlink.textContent || '';
+        inplace.classList.add('inplaceeditingon');
+        card.setAttribute('draggable', 'false');
+        card.setAttribute('data-inplace-in-draggable', 'true');
+
+        const textarea = document.createElement('textarea');
+        textarea.className = 'form-control ignoredirty mod_kanban_card_title_editor';
+        textarea.rows = 4;
+        textarea.value = currentvalue;
+        textarea.setAttribute('aria-label', 'Editar titulo do cartao');
+
+        inplace.innerHTML = '';
+        inplace.appendChild(textarea);
+
+        textarea.focus();
+        textarea.selectionStart = textarea.value.length;
+        textarea.selectionEnd = textarea.value.length;
+
+        let handled = false;
+        let outsideClickHandler = null;
+        let outsideTouchHandler = null;
+        const detachOutsideHandlers = function() {
+            if (outsideClickHandler) {
+                document.removeEventListener('mousedown', outsideClickHandler, true);
+                outsideClickHandler = null;
+            }
+            if (outsideTouchHandler) {
+                document.removeEventListener('touchstart', outsideTouchHandler, true);
+                outsideTouchHandler = null;
+            }
+        };
+        const commit = function() {
+            if (handled) {
+                return;
+            }
+            handled = true;
+            detachOutsideHandlers();
+            const savedvalue = textarea.value.trim() === '' ? '{{#str}} newcard, mod_kanban {{/str}}' : textarea.value;
+            closeEditor(savedvalue, true);
+            saveTitle(savedvalue);
+        };
+        const cancel = function() {
+            if (handled) {
+                return;
+            }
+            handled = true;
+            detachOutsideHandlers();
+            closeEditor(currentvalue, true);
+        };
+
+        textarea.addEventListener('keydown', function(evt) {
+            const key = evt.key || '';
+            const isescape = key === 'Escape' || key === 'Esc' || evt.keyCode === 27;
+            const isenter = key === 'Enter' || evt.keyCode === 13;
+
+            if (isescape) {
+                evt.preventDefault();
+                cancel();
+                return;
+            }
+            if (isenter && !evt.shiftKey) {
+                evt.preventDefault();
+                commit();
+            }
+        });
+
+        textarea.addEventListener('blur', function() {
+            commit();
+        });
+
+        outsideClickHandler = function(evt) {
+            if (!inplace.contains(evt.target)) {
+                commit();
+            }
+        };
+        outsideTouchHandler = function(evt) {
+            if (!inplace.contains(evt.target)) {
+                commit();
+            }
+        };
+        document.addEventListener('mousedown', outsideClickHandler, true);
+        document.addEventListener('touchstart', outsideTouchHandler, true);
+    });
+});
 {{/js}}
 

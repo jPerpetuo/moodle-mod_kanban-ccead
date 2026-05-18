@@ -1301,6 +1301,15 @@ a.mod_kanban_attachment_item {
     word-break: break-word;
 }
 
+.mod_kanban_card_title .mod_kanban_card_title_editor {
+    min-height: 5.4rem;
+    resize: vertical;
+    font-size: .92rem;
+    line-height: 1.35;
+    padding: .35rem .45rem;
+    margin: 0;
+}
+
 .mod_kanban_card .mod_kanban_action_menu {
     position: static;
 }
