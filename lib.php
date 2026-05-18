@@ -41,6 +41,7 @@ MoodleQuickForm::registerElementType('color', $CFG->dirroot . '/mod/kanban/class
  */
 function kanban_add_instance($data): int {
     global $DB;
+    kanban_normalize_board_group_settings($data);
     $kanbanid = $DB->insert_record("kanban", $data);
     $boardmanager = new boardmanager();
     $boardmanager->load_instance($kanbanid, true);
@@ -56,8 +57,68 @@ function kanban_add_instance($data): int {
  */
 function kanban_update_instance($data): int {
     global $DB;
+    kanban_normalize_board_group_settings($data);
     $data->id = $data->instance;
     return $DB->update_record("kanban", $data);
+}
+
+/**
+ * Normalize selected board group settings before persisting the activity.
+ *
+ * The form sends values through both a hidden CSV field (boardgroups) and
+ * the selected list (selectedboardgroups[]). This function ensures consistent
+ * persistence regardless of which transport path was updated.
+ *
+ * @param stdClass $data Form payload.
+ * @return void
+ */
+function kanban_normalize_board_group_settings(stdClass &$data): void {
+    $selectedgroupids = [];
+
+    // First preference: raw POST from the right-side selector.
+    // These custom HTML fields are not guaranteed to be present in moodleform data object.
+    if (isset($_POST['selectedboardgroups'])) {
+        $rawselected = $_POST['selectedboardgroups'];
+        if (!is_array($rawselected)) {
+            $rawselected = [$rawselected];
+        }
+        $selectedgroupids = array_filter(array_map('intval', $rawselected), function(int $groupid): bool {
+            return $groupid > 0;
+        });
+    } else if (isset($data->selectedboardgroups)) {
+        // Fallback when field is present in the parsed form data.
+        $rawselected = $data->selectedboardgroups;
+        if (!is_array($rawselected)) {
+            $rawselected = [$rawselected];
+        }
+        $selectedgroupids = array_filter(array_map('intval', $rawselected), function(int $groupid): bool {
+            return $groupid > 0;
+        });
+    }
+
+    if (!empty($selectedgroupids)) {
+        $selectedgroupids = array_values(array_unique($selectedgroupids));
+        $data->boardgroups = implode(',', $selectedgroupids);
+        $data->boardgroupid = (int)reset($selectedgroupids);
+        return;
+    }
+
+    $serialized = trim((string)($data->boardgroups ?? ''));
+    if ($serialized !== '') {
+        $groupids = preg_split('/[;,]/', $serialized, -1, PREG_SPLIT_NO_EMPTY);
+        $groupids = array_filter(array_map('intval', $groupids), function(int $groupid): bool {
+            return $groupid > 0;
+        });
+        if (!empty($groupids)) {
+            $groupids = array_values(array_unique($groupids));
+            $data->boardgroups = implode(',', $groupids);
+            $data->boardgroupid = (int)reset($groupids);
+            return;
+        }
+    }
+
+    $data->boardgroups = '';
+    $data->boardgroupid = 0;
 }
 
 /**

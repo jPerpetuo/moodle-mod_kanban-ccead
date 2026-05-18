@@ -61,10 +61,16 @@ define(function() {
             const boardmodeField = document.getElementById(param.boardmodefieldid);
             const container = document.getElementById(param.containerid);
             const form = document.getElementById(param.formid) || (selectedSelect ? selectedSelect.closest('form') : null);
+            const containerRow = container ? (container.closest('.fitem') || container.parentElement) : null;
+            const headerRow = containerRow && containerRow.previousElementSibling ? containerRow.previousElementSibling : null;
 
             if (!selectedSelect || !boardgroupsInput || !boardgroupidInput || !boardmodeField || !container) {
                 return;
             }
+            if (container.dataset.boardgroupsInit === '1') {
+                return;
+            }
+            container.dataset.boardgroupsInit = '1';
 
             const syncInputs = function() {
                 const selectedValues = Array.from(selectedSelect.options).map((option) => option.value);
@@ -73,7 +79,14 @@ define(function() {
             };
 
             const toggleVisibility = function() {
-                container.style.display = String(boardmodeField.value) === String(param.groupmodevalue) ? '' : 'none';
+                const showGroups = String(boardmodeField.value) === String(param.groupmodevalue);
+                container.style.display = showGroups ? '' : 'none';
+                if (containerRow) {
+                    containerRow.style.display = showGroups ? '' : 'none';
+                }
+                if (headerRow) {
+                    headerRow.style.display = showGroups ? '' : 'none';
+                }
             };
 
             if (availableSelect && addBtn) {
@@ -107,7 +120,12 @@ define(function() {
 
             boardmodeField.addEventListener('change', toggleVisibility);
             if (form) {
-                form.addEventListener('submit', syncInputs);
+                form.addEventListener('submit', function() {
+                    Array.from(selectedSelect.options).forEach((option) => {
+                        option.selected = true;
+                    });
+                    syncInputs();
+                });
             }
 
             syncInputs();

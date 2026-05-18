@@ -35,7 +35,7 @@ class mod_kanban_mod_form extends moodleform_mod {
      * @return void
      */
     public function definition(): void {
-        global $COURSE;
+        global $COURSE, $PAGE;
         $mform = $this->_form;
 
         $mform->addElement('header', 'generalhdr', get_string('general'));
@@ -69,6 +69,15 @@ class mod_kanban_mod_form extends moodleform_mod {
         $mform->setDefault('boardmode', constants::MOD_KANBAN_BOARDMODE_GROUP);
         $mform->addHelpButton('boardmode', 'boardmode', 'kanban');
 
+        $mform->addElement('advcheckbox', 'usenumbers', get_string('usenumbers', 'mod_kanban'));
+        $mform->addHelpButton('usenumbers', 'usenumbers', 'mod_kanban');
+
+        $mform->addElement('advcheckbox', 'linknumbers', get_string('linknumbers', 'mod_kanban'));
+        $mform->addHelpButton('linknumbers', 'linknumbers', 'mod_kanban');
+        $mform->hideIf('linknumbers', 'usenumbers', 'notchecked');
+        $mform->setDefault('linknumbers', 1);
+        $mform->setType('linknumbers', PARAM_INT);
+
         $selectedgroupids = $this->get_initial_board_group_ids($groups);
         $availablegroups = array_filter($groups, function($group) use ($selectedgroupids) {
             return !in_array((int)$group->id, $selectedgroupids, true);
@@ -82,11 +91,12 @@ class mod_kanban_mod_form extends moodleform_mod {
         $moveselectedtoavailable = $this->get_move_groups_inline_js('id_selectedBoardGroups', 'availableboardgroups');
 
         $mform->addElement('header', 'groups', get_string('groups', 'group'));
+        $mform->setExpanded('groups', true);
         $mform->addElement('html', '<div id="kanban-boardgroups-selector">');
         if (!empty($groups)) {
             $mform->addElement('html', '
                 <div class="fcontainer clearfix">
-                    <label for="availableboardgroups" class="fitemtitle">' .
+                    <label for="availableboardgroups" class="fitemtitle mod_kanban_boardgroups_description">' .
                         get_string('boardgroupsdescription', 'kanban') . '</label>
                     <div class="fitem fitem_fselect">
                         <div class="felement fselect">
@@ -99,7 +109,7 @@ class mod_kanban_mod_form extends moodleform_mod {
                                     </tr>
                                     <tr class="row">
                                         <td style="vertical-align: top" class="col-5">
-                                            <select class="col-12" id="availableboardgroups" multiple size="10" style="width: 100%; min-width: 20rem;" ondblclick="' .
+                                            <select class="col-12" id="availableboardgroups" name="availableboardgroups[]" multiple size="10" style="width: 100%; min-width: 20rem;" ondblclick="' .
                                                 s($moveavailabletoselected) . '">');
             foreach ($availablegroups as $group) {
                 $mform->addElement('html', '<option value="' . (int)$group->id . '">' .
@@ -119,10 +129,10 @@ class mod_kanban_mod_form extends moodleform_mod {
                                             </div>
                                         </td>
                                         <td style="vertical-align: top" class="col-5">
-                                            <select class="col-12" id="id_selectedBoardGroups" multiple size="10" style="width: 100%; min-width: 20rem;" ondblclick="' .
+                                            <select class="col-12" id="id_selectedBoardGroups" name="selectedboardgroups[]" multiple size="10" style="width: 100%; min-width: 20rem;" ondblclick="' .
                                                 s($moveselectedtoavailable) . '">');
             foreach ($selectedgroups as $group) {
-                $mform->addElement('html', '<option value="' . (int)$group->id . '">' .
+                $mform->addElement('html', '<option value="' . (int)$group->id . '" selected="selected">' .
                     format_string($group->name) . '</option>');
             }
             $mform->addElement('html', '
@@ -143,20 +153,16 @@ class mod_kanban_mod_form extends moodleform_mod {
         $mform->setType('boardgroupid', PARAM_INT);
         $mform->addElement('html', '</div>');
         $mform->hideIf('groups', 'boardmode', 'neq', constants::MOD_KANBAN_BOARDMODE_GROUP);
+        $PAGE->requires->js_call_amd('mod_kanban/boardgroupsetting', 'init', [
+            'boardmodefieldid' => 'id_boardmode',
+            'containerid' => 'kanban-boardgroups-selector',
+            'groupmodevalue' => constants::MOD_KANBAN_BOARDMODE_GROUP,
+        ]);
 
         if (!empty(get_config('mod_kanban', 'enablehistory'))) {
             $mform->addElement('advcheckbox', 'history', get_string('enablehistory', 'mod_kanban'));
             $mform->addHelpButton('history', 'enablehistory', 'mod_kanban');
         }
-
-        $mform->addElement('advcheckbox', 'usenumbers', get_string('usenumbers', 'mod_kanban'));
-        $mform->addHelpButton('usenumbers', 'usenumbers', 'mod_kanban');
-
-        $mform->addElement('advcheckbox', 'linknumbers', get_string('linknumbers', 'mod_kanban'));
-        $mform->addHelpButton('linknumbers', 'linknumbers', 'mod_kanban');
-        $mform->hideIf('linknumbers', 'usenumbers', 'notchecked');
-        $mform->setDefault('linknumbers', 1);
-        $mform->setType('linknumbers', PARAM_INT);
 
         $this->standard_coursemodule_elements();
 
@@ -191,6 +197,8 @@ class mod_kanban_mod_form extends moodleform_mod {
     /**
      * Build inline JS used by add/remove buttons to move group options and sync hidden fields.
      *
+     * Kept as fallback in case AMD does not initialize in a specific Moodle/theme context.
+     *
      * @param string $sourceid Source select id.
      * @param string $targetid Target select id.
      * @return string
@@ -205,6 +213,7 @@ class mod_kanban_mod_form extends moodleform_mod {
             "options.forEach(function(o){o.selected=false;t.appendChild(o);});" .
             "[s,t].forEach(function(x){Array.from(x.options).sort(function(a,b){return a.text.localeCompare(b.text);})" .
             ".forEach(function(o){x.appendChild(o);});});" .
+            "Array.from(selected.options).forEach(function(o){o.selected=true;});" .
             "var hidden=document.getElementById('id_boardgroups');" .
             "var first=document.getElementById('id_boardgroupid');" .
             "if(hidden&&first){var vals=Array.from(selected.options).map(function(o){return o.value;});" .
@@ -234,7 +243,20 @@ class mod_kanban_mod_form extends moodleform_mod {
             $groups = groups_get_all_groups($courseid, 0, 0, 'g.id, g.name');
         }
 
-        if (!empty($groups) && empty(trim((string)($data['boardgroups'] ?? '')))) {
+        $submittedgroups = $data['selectedboardgroups'] ?? [];
+        if (!is_array($submittedgroups)) {
+            $submittedgroups = [$submittedgroups];
+        }
+        $submittedgroups = array_filter(array_map('intval', $submittedgroups), function(int $groupid): bool {
+            return $groupid > 0;
+        });
+
+        $boardgroups = trim((string)($data['boardgroups'] ?? ''));
+        if ($boardgroups === '' && !empty($submittedgroups)) {
+            $boardgroups = implode(',', $submittedgroups);
+        }
+
+        if (!empty($groups) && $boardgroups === '') {
             $errors['boardmode'] = get_string('boardgroupsrequired', 'kanban');
         }
 

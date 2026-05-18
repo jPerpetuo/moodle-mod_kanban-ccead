@@ -1560,6 +1560,11 @@ a.mod_kanban_attachment_item {
     text-decoration: none;
 }
 
+#kanban-boardgroups-selector .mod_kanban_boardgroups_description {
+    display: block;
+    margin: .4rem 0 .75rem;
+}
+
 @media (max-width: 768px) {
     .mod_kanban_board_focus_head,
     .mod_kanban_board_focus_meta {
