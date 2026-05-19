@@ -1459,6 +1459,40 @@ a.mod_kanban_attachment_item {
     margin-left: 2px;
 }
 
+.mod_kanban_card.mod_kanban_closed .mod_kanban_duedate {
+    display: none !important;
+}
+
+.mod_kanban_card.mod_kanban_closed .mod_kanban_card_footer {
+    position: relative;
+    flex: 1 1 auto;
+    padding-bottom: 1.55rem;
+}
+
+.mod_kanban_card.mod_kanban_closed .mod_kanban_card_meta_row {
+    position: absolute;
+    right: 0;
+    bottom: .45rem;
+    margin-top: 0;
+    order: 1;
+    min-height: 0;
+}
+
+.mod_kanban_card.mod_kanban_closed .mod_kanban_card_assignees_row {
+    position: absolute;
+    left: 0;
+    right: 3.8rem;
+    bottom: .45rem;
+    margin-top: 0;
+    min-height: 0;
+    order: 2;
+}
+
+.mod_kanban_card.mod_kanban_closed .mod_kanban_assignees {
+    flex-wrap: nowrap;
+    overflow: hidden;
+}
+
 .mod_kanban_card .mod_kanban_card_completion {
     position: static;
     right: auto;
