@@ -1293,6 +1293,16 @@ a.mod_kanban_attachment_item {
     color: #303946;
 }
 
+.mod_kanban_card .mod_kanban_card_number {
+    display: block;
+    margin: 0 0 .60rem;
+    color: #68717d;
+    font-size: .82rem;
+    font-weight: 400;
+    line-height: 1.2;
+    cursor: default;
+}
+
 .mod_kanban_card_title .quickeditlink {
     display: block;
     color: #303946;
