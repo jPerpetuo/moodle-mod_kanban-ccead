@@ -73,9 +73,7 @@ function kanban_update_instance($data): int {
  * @return void
  */
 function kanban_normalize_board_group_settings(stdClass &$data): void {
-    if (empty($data->usenumbers)) {
-        $data->linknumbers = 0;
-    }
+    $data->linknumbers = empty($data->usenumbers) ? 0 : 1;
 
     $selectedgroupids = [];
 

@@ -71,15 +71,15 @@ class mod_kanban_mod_form extends moodleform_mod {
 
         $mform->addElement('advcheckbox', 'usenumbers', get_string('usenumbers', 'mod_kanban'));
         $mform->addHelpButton('usenumbers', 'usenumbers', 'mod_kanban');
+        $mform->setDefault('usenumbers', 1);
 
-        $mform->addElement('advcheckbox', 'linknumbers', get_string('linknumbers', 'mod_kanban'));
-        $mform->addHelpButton('linknumbers', 'linknumbers', 'mod_kanban');
-        $mform->disabledIf('linknumbers', 'usenumbers', 'notchecked');
-        $mform->setDefault('linknumbers', 0);
+        $mform->addElement('hidden', 'linknumbers', 1);
+        $mform->setDefault('linknumbers', 1);
         $mform->setType('linknumbers', PARAM_INT);
 
         $mform->addElement('advcheckbox', 'history', get_string('enablehistory', 'mod_kanban'));
         $mform->addHelpButton('history', 'enablehistory', 'mod_kanban');
+        $mform->setDefault('history', 1);
 
         $selectedgroupids = $this->get_initial_board_group_ids($groups);
         $availablegroups = array_filter($groups, function($group) use ($selectedgroupids) {
@@ -170,16 +170,14 @@ class mod_kanban_mod_form extends moodleform_mod {
     /**
      * Preprocess form defaults before rendering.
      *
-     * Ensures linknumbers stays unchecked whenever usenumbers is disabled.
+     * Ensures linknumbers follows usenumbers in the form defaults.
      *
      * @param array $defaultvalues Default form values.
      * @return void
      */
     public function data_preprocessing(&$defaultvalues): void {
         parent::data_preprocessing($defaultvalues);
-        if (empty($defaultvalues['usenumbers'])) {
-            $defaultvalues['linknumbers'] = 0;
-        }
+        $defaultvalues['linknumbers'] = empty($defaultvalues['usenumbers']) ? 0 : 1;
     }
 
     /**
