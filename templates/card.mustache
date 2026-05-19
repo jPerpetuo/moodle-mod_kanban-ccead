@@ -55,7 +55,7 @@
                     {{/hasassignees}}
                 </div>
             </div>
-            <div class="mod_kanban_card_meta_row{{#duedate}} has-meta{{/duedate}}{{#hasdiscussion}} has-meta{{/hasdiscussion}}{{#hasdescription}} has-meta{{/hasdescription}}{{#hasattachment}} has-meta{{/hasattachment}}">
+            <div class="mod_kanban_card_meta_row{{#completed}} has-meta{{/completed}}{{#duedate}} has-meta{{/duedate}}{{#hasdiscussion}} has-meta{{/hasdiscussion}}{{#hasdescription}} has-meta{{/hasdescription}}{{#hasattachment}} has-meta{{/hasattachment}}">
                 <div class="mod_kanban_duedate" data-date="{{duedate}}"{{#duedate}} title="{{#str}} due, mod_kanban {{/str}}: {{#userdate}} {{duedate}}, {{#str}} strftimedate, core_langconfig {{/str}} {{/userdate}}"{{/duedate}}>
                     {{#duedate}}
                         <span class="mod_kanban_duedate_icon"><i class="icon fa-regular fa-calendar-days fa-fw" aria-hidden="true"></i></span>
@@ -69,6 +69,9 @@
                     <button class="mod_kanban_detail_trigger btn btn-icon icon-no-margin p-0">
                     {{#pix}} e/file-text, core, {{#str}} showdescription, mod_kanban {{/str}} {{/pix}}
                     </button>
+                    <span class="mod_kanban_card_completion_indicator" title="{{#str}} completed, core {{/str}}">
+                        <i class="fa fa-check fa-fw" aria-hidden="true"></i>
+                    </span>
                 </div>
             </div>
             <div class="mod_kanban_tags">

@@ -414,6 +414,9 @@ export default class extends KanbanComponent {
      * @param {*} param0
      */
     async _cardUpdated({element}) {
+        if (this.getElement().querySelector('.mod_kanban_card_title_editor')) {
+            return;
+        }
         const card = this.getElement();
         // Card was moved to another column. Move the element to new card (right position is handled by column component).
         if (card.dataset.columnid != element.kanban_column) {
@@ -454,7 +457,10 @@ export default class extends KanbanComponent {
         }
         const assigneesRow = this.getElement().querySelector('.mod_kanban_card_assignees_row');
         if (assigneesRow) {
-            assigneesRow.classList.toggle('has-assignees', this.getElements(selectors.ASSIGNEDUSER, this.id).length > 0);
+            const hasassignees = element.assignees !== undefined ?
+                element.assignees.length > 0 :
+                this.getElements(selectors.ASSIGNEDUSER, this.id).length > 0;
+            assigneesRow.classList.toggle('has-assignees', hasassignees);
         }
         this.toggleClass(element.selfassigned, 'mod_kanban_selfassigned');
         // Set card completion state.
@@ -492,6 +498,7 @@ export default class extends KanbanComponent {
             metaRow.classList.toggle(
                 'has-meta',
                 duedate > 0 ||
+                this.getElement().classList.contains('mod_kanban_closed') ||
                 this.getElement().classList.contains('mod_kanban_hasdiscussion') ||
                 this.getElement().classList.contains('mod_kanban_hasdescription') ||
                 this.getElement().classList.contains('mod_kanban_hasattachment')
@@ -762,5 +769,3 @@ export default class extends KanbanComponent {
         this.reactive.dispatch('duplicateCard', data.id);
     }
 }
-
-
