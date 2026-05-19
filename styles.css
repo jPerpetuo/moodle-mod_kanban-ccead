@@ -1315,8 +1315,8 @@ a.mod_kanban_attachment_item {
 }
 
 .mod_kanban_card .mod_kanban_action_menu_trigger {
-    width: 1.8rem;
-    height: 1.8rem;
+    width: 1.9rem;
+    height: 1.9rem;
     border: 0;
     background: transparent;
     box-shadow: none;
@@ -1466,6 +1466,13 @@ a.mod_kanban_attachment_item {
 .mod_kanban_card.mod_kanban_closed .mod_kanban_card_footer {
     position: relative;
     flex: 1 1 auto;
+    padding-bottom: .35rem;
+}
+
+.mod_kanban_card.mod_kanban_closed:not(.mod_kanban_unassigned) .mod_kanban_card_footer,
+.mod_kanban_card.mod_kanban_closed.mod_kanban_hasdiscussion .mod_kanban_card_footer,
+.mod_kanban_card.mod_kanban_closed.mod_kanban_hasdescription .mod_kanban_card_footer,
+.mod_kanban_card.mod_kanban_closed.mod_kanban_hasattachment .mod_kanban_card_footer {
     padding-bottom: 1.55rem;
 }
 
