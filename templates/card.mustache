@@ -115,7 +115,7 @@ require(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         inplace.innerHTML = '<a class="quickeditlink aalink" data-inplaceeditablelink="1">' + safevalue + '</a>';
         const discussiontitle = card.querySelector('.mod_kanban_discussion_modal .modal-title');
         if (discussiontitle) {
-            discussiontitle.innerHTML = safevalue;
+            discussiontitle.textContent = decodeHtmlEntities(safevalue);
         }
     };
 

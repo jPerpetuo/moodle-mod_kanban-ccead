@@ -539,10 +539,10 @@ export default class extends KanbanComponent {
                 delete cardelement.dataset.titleLockUntil;
                 delete cardelement.dataset.titleLockValue;
             }
-            this.getElement(selectors.INPLACEEDITABLE).setAttribute('data-value', incomingtitleplain);
-            this.getElement(selectors.INPLACEEDITABLE).querySelector('a').innerHTML = element.title;
-            this.getElement(selectors.DISCUSSIONMODALTITLE).innerHTML = element.title;
-        }
+        this.getElement(selectors.INPLACEEDITABLE).setAttribute('data-value', incomingtitleplain);
+        this.getElement(selectors.INPLACEEDITABLE).querySelector('a').innerHTML = element.title;
+        this.getElement(selectors.DISCUSSIONMODALTITLE).textContent = incomingtitleplain;
+    }
         if (element.hasdescription !== undefined) {
             this.toggleClass(element.hasdescription, 'mod_kanban_hasdescription');
         }
