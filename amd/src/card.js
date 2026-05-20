@@ -191,6 +191,7 @@ export default class extends KanbanComponent {
         this.userid = state.board.userid;
         this.groupid = state.board.groupid;
         this._dueDateFormat();
+        this._renderAssigneeSummary();
         this._updateCompletionIndicatorTooltip();
         this._syncFooterLayoutState();
     }
@@ -482,10 +483,12 @@ export default class extends KanbanComponent {
                     data = Object.assign(data, exporter.exportCapabilities(this.reactive.state));
                     Templates.renderForPromise('mod_kanban/user', data).then(({html, js}) => {
                         Templates.appendNodeContents(assignees, html, js);
+                        this._renderAssigneeSummary();
                         return true;
                     }).catch((error) => displayException(error));
                 });
             }
+            this._renderAssigneeSummary();
         }
         const assigneesRow = this.getElement().querySelector('.mod_kanban_card_assignees_row');
         if (assigneesRow) {
@@ -741,6 +744,54 @@ export default class extends KanbanComponent {
             action: 'put',
             fields: merged,
         }]);
+    }
+
+    /**
+     * Render compact assignee list: show first two users, then "and more X" with hover.
+     */
+    _renderAssigneeSummary() {
+        const container = this.getElement(selectors.ASSIGNEES, this.id);
+        if (!container) {
+            return;
+        }
+        container.classList.remove('mod_kanban_assignees_enhanced');
+        container.querySelectorAll('.mod_kanban_assignee_summary').forEach((node) => node.remove());
+        const assignees = Array.from(container.querySelectorAll(selectors.ASSIGNEDUSER));
+        assignees.forEach((node) => node.classList.remove('mod_kanban_assigned_user_hidden'));
+        if (assignees.length <= 2) {
+            container.classList.add('mod_kanban_assignees_enhanced');
+            return;
+        }
+
+        const hidden = assignees.slice(2);
+        hidden.forEach((node) => node.classList.add('mod_kanban_assigned_user_hidden'));
+
+        const hiddennames = hidden
+            .map((node) => node.getAttribute('title') || node.querySelector('.mod_kanban_assigned_user_name')?.textContent || '')
+            .map((name) => name.trim())
+            .filter((name) => name.length > 0);
+
+        const rawlabel = (container.dataset.moreLabel || '').trim();
+        const morelabel = (!rawlabel || rawlabel.startsWith('[[') || rawlabel.toLowerCase() === 'and more') ? 'e mais' : rawlabel;
+        const summary = document.createElement('div');
+        summary.className = 'mod_kanban_assigned_user mod_kanban_assignee_summary';
+        summary.setAttribute('tabindex', '0');
+
+        const icon = document.createElement('span');
+        icon.className = 'mod_kanban_assigned_user_icon';
+        icon.innerHTML = '<i class="icon fa fa-user fa-fw" aria-hidden="true"></i>';
+
+        const name = document.createElement('span');
+        name.className = 'mod_kanban_assigned_user_name';
+        name.textContent = `${morelabel} ${hidden.length}`;
+
+        summary.appendChild(icon);
+        summary.appendChild(name);
+        if (hiddennames.length > 0) {
+            summary.setAttribute('title', hiddennames.join(', '));
+        }
+        container.appendChild(summary);
+        container.classList.add('mod_kanban_assignees_enhanced');
     }
 
     /**

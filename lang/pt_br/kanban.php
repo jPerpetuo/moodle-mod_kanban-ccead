@@ -26,6 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $string['addcardshort'] = 'Adicionar cartão';
 $string['addcolumnshort'] = 'Adicionar coluna';
+$string['andmore'] = 'e mais';
 $string['boardactions'] = 'Ações do quadro';
 $string['boardgroupcurrent'] = 'Usar o grupo atual';
 $string['boardgroupid'] = 'Quadro padrão do grupo';

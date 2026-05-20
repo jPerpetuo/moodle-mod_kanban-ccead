@@ -1383,9 +1383,9 @@ a.mod_kanban_attachment_item {
     bottom: auto;
     margin: 0;
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: .2rem .55rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .14rem;
     min-height: 1rem;
     max-width: none;
     max-height: none;
@@ -1398,7 +1398,7 @@ a.mod_kanban_attachment_item {
     position: static;
     width: auto;
     height: auto;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: .2rem;
     padding: 0;
@@ -1412,11 +1412,38 @@ a.mod_kanban_attachment_item {
     max-width: 100%;
 }
 
+.mod_kanban_card .mod_kanban_assigned_user_hidden {
+    display: none !important;
+}
+
+.mod_kanban_card .mod_kanban_assignee_summary {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #68717d;
+    font-size: .82rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: default;
+}
+
+.mod_kanban_card .mod_kanban_assignee_summary .mod_kanban_assigned_user_icon {
+    visibility: hidden;
+}
+
+/* Reduce first-paint flicker before JS summary rendering runs. */
+.mod_kanban_card .mod_kanban_assignees:not(.mod_kanban_assignees_enhanced) .mod_kanban_assigned_user:nth-of-type(n+3) {
+    display: none;
+}
+
 .mod_kanban_card .mod_kanban_assigned_user_name {
     max-width: 8.8rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    cursor: default;
 }
 
 .mod_kanban_card .mod_kanban_assigned_user_icon {
@@ -1582,6 +1609,7 @@ a.mod_kanban_attachment_item {
     width: 1.6rem;
     height: 1.6rem;
     color: #6b7280;
+    margin-left: -0.1875rem;
 }
 
 .mod_kanban_card .mod_kanban_card_completion_indicator {

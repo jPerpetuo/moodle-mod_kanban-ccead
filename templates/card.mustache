@@ -47,7 +47,7 @@
         </div>
         <div class="mod_kanban_card_footer">
             <div class="mod_kanban_card_assignees_row{{#hasassignees}} has-assignees{{/hasassignees}}">
-                <div class="mod_kanban_assignees" data-id="{{id}}">
+                <div class="mod_kanban_assignees" data-id="{{id}}" data-more-label="{{#str}} andmore, mod_kanban {{/str}}">
                     {{#hasassignees}}
                         {{#assignees}}
                             {{>mod_kanban/user}}
@@ -284,6 +284,100 @@ require(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         document.addEventListener('mousedown', outsideClickHandler, true);
         document.addEventListener('touchstart', outsideTouchHandler, true);
     });
+});
+
+require([], function() {
+    const card = document.getElementById('mod_kanban_card-{{id}}');
+    if (!card) {
+        return;
+    }
+
+    const summaryclass = 'mod_kanban_assignee_summary';
+    const hiddenclass = 'mod_kanban_assigned_user_hidden';
+    const readyclass = 'mod_kanban_assignees_enhanced';
+
+    const renderSummary = function() {
+        const container = card.querySelector('.mod_kanban_assignees');
+        if (!container || container.__modKanbanSummaryRendering) {
+            return;
+        }
+        container.__modKanbanSummaryRendering = true;
+
+        try {
+            container.classList.remove(readyclass);
+            container.querySelectorAll('.' + summaryclass).forEach(function(node) {
+                node.remove();
+            });
+
+            const assignees = Array.from(container.querySelectorAll('.mod_kanban_assigned_user')).filter(function(node) {
+                return !node.classList.contains(summaryclass);
+            });
+            assignees.forEach(function(node) {
+                node.classList.remove(hiddenclass);
+            });
+
+            if (assignees.length > 2) {
+                const hidden = assignees.slice(2);
+                hidden.forEach(function(node) {
+                    node.classList.add(hiddenclass);
+                });
+
+                const hiddennames = hidden.map(function(node) {
+                    return (node.getAttribute('title') || '').trim();
+                }).filter(function(name) {
+                    return name.length > 0;
+                });
+
+                const rawlabel = (container.dataset.moreLabel || '').trim();
+                const morelabel = (!rawlabel || rawlabel.startsWith('[[') || rawlabel.toLowerCase() === 'and more') ? 'e mais' : rawlabel;
+
+                const summary = document.createElement('div');
+                summary.className = 'mod_kanban_assigned_user ' + summaryclass;
+                summary.setAttribute('tabindex', '0');
+
+                if (hiddennames.length > 0) {
+                    summary.setAttribute('title', hiddennames.join(', '));
+                }
+
+                const icon = document.createElement('span');
+                icon.className = 'mod_kanban_assigned_user_icon';
+                icon.innerHTML = '<i class="icon fa fa-user fa-fw" aria-hidden="true"></i>';
+
+                const text = document.createElement('span');
+                text.className = 'mod_kanban_assigned_user_name';
+                text.textContent = morelabel + ' ' + hidden.length;
+
+                summary.appendChild(icon);
+                summary.appendChild(text);
+                container.appendChild(summary);
+            }
+        } finally {
+            container.classList.add(readyclass);
+            container.__modKanbanSummaryRendering = false;
+        }
+    };
+
+    const scheduleRender = function() {
+        if (card.__modKanbanAssigneeSummaryTimer) {
+            clearTimeout(card.__modKanbanAssigneeSummaryTimer);
+        }
+        card.__modKanbanAssigneeSummaryTimer = setTimeout(renderSummary, 0);
+    };
+
+    renderSummary();
+    const assigneecontainer = card.querySelector('.mod_kanban_assignees');
+    if (assigneecontainer) {
+        const observer = new MutationObserver(function() {
+            scheduleRender();
+        });
+        observer.observe(assigneecontainer, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['class', 'title']
+        });
+        card.__modKanbanAssigneeSummaryObserver = observer;
+    }
 });
 {{/js}}
 

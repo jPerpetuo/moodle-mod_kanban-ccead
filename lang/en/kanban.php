@@ -51,6 +51,7 @@ $string['afterdue'] = 'after card is due';
 $string['assignee'] = 'Assignee';
 $string['assignees'] = 'Assignees';
 $string['assignme'] = 'Assign me';
+$string['andmore'] = 'and more';
 $string['attachments'] = 'Attachments';
 $string['autoclose'] = 'Auto close cards';
 $string['autohide'] = 'Auto hide closed cards';
