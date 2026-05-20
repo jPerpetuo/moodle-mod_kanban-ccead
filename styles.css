@@ -230,7 +230,8 @@
 .mod_kanban_addcard_first {
     list-style: none;
     height: 10px;
-    width: 18rem;
+    width: 100%;
+    max-width: 100%;
     position: relative;
 }
 
@@ -1585,14 +1586,15 @@ a.mod_kanban_attachment_item {
 
 .mod_kanban_card .mod_kanban_card_completion_indicator {
     display: none;
-    width: 1.6rem;
-    height: 1.6rem;
+    width: 1.5rem;
+    height: 1.5rem;
     align-items: center;
     justify-content: center;
     color: #198754;
     background: #d8e7c7;
     border-radius: 6px;
     flex: 0 0 auto;
+    cursor: default;
 }
 
 .mod_kanban_card.mod_kanban_closed .mod_kanban_card_completion_indicator {
