@@ -191,6 +191,7 @@ export default class extends KanbanComponent {
         this.userid = state.board.userid;
         this.groupid = state.board.groupid;
         this._dueDateFormat();
+        this._updateCompletionIndicatorTooltip();
         this._syncFooterLayoutState();
     }
 
@@ -500,6 +501,10 @@ export default class extends KanbanComponent {
         if (element.completed !== undefined) {
             this.toggleClass(element.completed == 1, 'mod_kanban_closed');
         }
+        if (element.completedat !== undefined) {
+            this.getElement().setAttribute('data-completedat', element.completedat);
+        }
+        this._updateCompletionIndicatorTooltip();
         // Update title (also in modals).
         if (element.title !== undefined) {
             const cardelement = this.getElement();
@@ -829,6 +834,61 @@ export default class extends KanbanComponent {
             month: '2-digit',
             year: 'numeric',
         }).format(new Date(timestamp));
+    }
+
+    /**
+     * Format completion date for tooltip.
+     * @param {int} timestamp Timestamp in seconds.
+     * @returns {string}
+     */
+    formatCompletedAtTooltip(timestamp) {
+        const lang = this.reactive.state.common.lang || 'pt-BR';
+        return new Intl.DateTimeFormat(lang, {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        }).format(new Date(timestamp * 1000));
+    }
+
+    /**
+     * Update completed checkmark tooltip from card state/history timestamp.
+     */
+    _updateCompletionIndicatorTooltip() {
+        const card = this.getElement();
+        if (!card) {
+            return;
+        }
+        const indicator = card.querySelector(selectors.COMPLETIONINDICATOR);
+        if (!indicator) {
+            return;
+        }
+        const fallback = indicator.dataset.completedFallback || 'Completed';
+        if (!card.classList.contains('mod_kanban_closed')) {
+            indicator.setAttribute('title', fallback);
+            return;
+        }
+        const historyenabled = !!(this.reactive?.state?.common?.history);
+        if (!historyenabled) {
+            indicator.setAttribute('title', fallback);
+            return;
+        }
+        const completedat = parseInt(card.dataset.completedat || '0', 10) || 0;
+        let completedline = fallback;
+        if (completedat > 0) {
+            const label = indicator.dataset.completedLabel || fallback;
+            completedline = `${label}: ${this.formatCompletedAtTooltip(completedat)}`;
+        }
+        const duedateelement = card.querySelector(selectors.DUEDATE);
+        const duedate = parseInt(duedateelement?.dataset?.date || '0', 10) || 0;
+        if (duedate > 0) {
+            const plannedlabel = indicator.dataset.plannedLabel || 'Planned for';
+            const plannedline = `${plannedlabel}: ${this.formatCompletedAtTooltip(duedate)}`;
+            indicator.setAttribute('title', `${plannedline}\n${completedline}`);
+            return;
+        }
+        indicator.setAttribute('title', completedline);
     }
 
     /**

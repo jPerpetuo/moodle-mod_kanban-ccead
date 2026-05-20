@@ -865,6 +865,7 @@ class boardmanager {
         try {
             $transaction = $DB->start_delegated_transaction();
             $sourcecolumn = $DB->get_record('kanban_column', ['id' => $card->kanban_column]);
+            $sourceoptions = json_decode($sourcecolumn->options ?? '{}');
 
             if ($card->kanban_column == $columnid) {
                 $update = [
@@ -938,6 +939,9 @@ class boardmanager {
                 helper::send_notification($this->cminfo, 'moved', $assignees, (object) $data);
                 if (!empty($options->autoclose) && $card->completed == 0) {
                     self::set_card_complete($cardid, 1);
+                } elseif (!empty($sourceoptions->autoclose) && empty($options->autoclose) && !empty($card->completed)) {
+                    // Reopen card when it leaves an autoclose (e.g. "Concluido") column.
+                    self::set_card_complete($cardid, 0);
                 }
                 $this->write_history(
                     'moved',
@@ -1092,7 +1096,9 @@ class boardmanager {
         global $DB, $USER;
         $card = $this->get_card($cardid);
         $update = ['id' => $cardid, 'completed' => $state, 'timemodified' => time(), 'repeat_enable' => 0];
-        $this->formatter->put('cards', $update);
+        $updateforfrontend = $update;
+        $updateforfrontend['completedat'] = !empty($state) ? $update['timemodified'] : 0;
+        $this->formatter->put('cards', $updateforfrontend);
         $DB->update_record('kanban_card', $update);
         $assignees = $this->get_card_assignees($cardid);
         if ($state) {

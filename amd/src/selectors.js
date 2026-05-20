@@ -40,6 +40,7 @@ export default {
     COLUMNINNER: `.mod_kanban_column_inner`,
     COMPLETE: `[data-action="complete_card"]`,
     COMPLETIONSTATE: `.mod_kanban_card_completion`,
+    COMPLETIONINDICATOR: `.mod_kanban_card_completion_indicator`,
     CONTAINER: `.mod_kanban_render_container`,
     DELETEBOARD: `[data-action="delete_board"]`,
     DELETECARD: `[data-action="delete_card"]`,

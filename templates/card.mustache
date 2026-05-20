@@ -31,7 +31,7 @@
         "number": 12
     }
 }}
-<li style="{{#background}}background-color: {{background}}{{/background}}" class="mod_kanban_card card{{#completed}} mod_kanban_closed{{/completed}} {{^hasassignees}}mod_kanban_unassigned{{/hasassignees}} {{#hasdescription}}mod_kanban_hasdescription{{/hasdescription}} {{#hasattachment}}mod_kanban_hasattachment{{/hasattachment}} {{#hasdiscussion}}mod_kanban_hasdiscussion{{/hasdiscussion}} {{#selfassigned}}mod_kanban_selfassigned{{/selfassigned}} {{#discussion}}mod_kanban_hasdiscussion{{/discussion}} {{#canedit}}mod_kanban_canedit{{/canedit}}" id="mod_kanban_card-{{id}}" data-id="{{id}}" data-columnid="{{kanban_column}}" data-number="{{number}}">
+<li style="{{#background}}background-color: {{background}}{{/background}}" class="mod_kanban_card card{{#completed}} mod_kanban_closed{{/completed}} {{^hasassignees}}mod_kanban_unassigned{{/hasassignees}} {{#hasdescription}}mod_kanban_hasdescription{{/hasdescription}} {{#hasattachment}}mod_kanban_hasattachment{{/hasattachment}} {{#hasdiscussion}}mod_kanban_hasdiscussion{{/hasdiscussion}} {{#selfassigned}}mod_kanban_selfassigned{{/selfassigned}} {{#discussion}}mod_kanban_hasdiscussion{{/discussion}} {{#canedit}}mod_kanban_canedit{{/canedit}}" id="mod_kanban_card-{{id}}" data-id="{{id}}" data-columnid="{{kanban_column}}" data-number="{{number}}" data-completedat="{{completedat}}">
     <div class="card-body mod_kanban_card_body">
             <div class="mod_kanban_card_top">
             <div class="mod_kanban_card_title card-title">
@@ -69,7 +69,7 @@
                     <button class="mod_kanban_detail_trigger btn btn-icon icon-no-margin p-0">
                     {{#pix}} e/file-text, core, {{#str}} showdescription, mod_kanban {{/str}} {{/pix}}
                     </button>
-                    <span class="mod_kanban_card_completion_indicator" title="{{#str}} completed, core {{/str}}">
+                    <span class="mod_kanban_card_completion_indicator" title="{{#str}} completed, core {{/str}}" data-completed-label="{{#str}} completedon, mod_kanban {{/str}}" data-completed-fallback="{{#str}} completed, core {{/str}}" data-planned-label="{{#str}} plannedfor, mod_kanban {{/str}}">
                         <i class="fa fa-check fa-fw" aria-hidden="true"></i>
                     </span>
                 </div>

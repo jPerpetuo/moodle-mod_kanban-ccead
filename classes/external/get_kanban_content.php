@@ -203,6 +203,12 @@ class get_kanban_content extends external_api {
                                     VALUE_OPTIONAL,
                                     false
                                 ),
+                                'completedat' => new external_value(
+                                    PARAM_INT,
+                                    'completion timestamp from history',
+                                    VALUE_OPTIONAL,
+                                    0
+                                ),
                                 'hasdescription' => new external_value(
                                     PARAM_BOOL,
                                     'has a description?',
@@ -622,11 +628,34 @@ class get_kanban_content extends external_api {
             $kanbanassigneesraw = $DB->get_records_select('kanban_assignee', $sql, $params);
             $kanbanassignees = [];
             $kanbanuserids = [];
+            $completedtimestamps = [];
             foreach ($kanbanassigneesraw as $assignee) {
                 if (!empty($kanbanusers[$assignee->userid])) {
                     $kanbanassignees[$assignee->kanban_card][] = $assignee->userid;
                     $kanbanuserids[] = $assignee->userid;
                 }
+            }
+            [$insql, $inparams] = $DB->get_in_or_equal($kanbancardids, SQL_PARAMS_NAMED);
+            $historyparams = array_merge(
+                $inparams,
+                [
+                    'boardid' => $boardid,
+                    'type' => constants::MOD_KANBAN_CARD,
+                    'action' => 'completed',
+                ]
+            );
+            $completedhistory = $DB->get_records_sql(
+                "SELECT kanban_card, MAX(timestamp) AS completedat
+                   FROM {kanban_history}
+                  WHERE kanban_board = :boardid
+                    AND type = :type
+                    AND action = :action
+                    AND kanban_card {$insql}
+               GROUP BY kanban_card",
+                $historyparams
+            );
+            foreach ($completedhistory as $row) {
+                $completedtimestamps[(int)$row->kanban_card] = (int)$row->completedat;
             }
             foreach ($kanbancards as $card) {
                 if (empty($kanbanassignees[$card->id])) {
@@ -637,6 +666,9 @@ class get_kanban_content extends external_api {
                 $card->selfassigned = in_array($USER->id, $card->assignees);
                 $card->canedit = $boardmanager->can_user_manage_specific_card($card->id);
                 $card->hasdescription = !empty($card->description);
+                $card->completedat = (!empty($card->completed) && !empty($completedtimestamps[$card->id])) ?
+                    $completedtimestamps[$card->id] :
+                    0;
                 $card->discussions = [];
                 $card->description = file_rewrite_pluginfile_urls(
                     format_text($card->description),
