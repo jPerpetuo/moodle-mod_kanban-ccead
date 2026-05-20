@@ -1518,6 +1518,23 @@ a.mod_kanban_attachment_item {
     padding-bottom: 1.55rem;
 }
 
+.mod_kanban_card.mod_kanban_closed.mod_kanban_assignees_multi .mod_kanban_card_footer {
+    padding-bottom: 2.55rem;
+}
+
+.mod_kanban_card.mod_kanban_closed.mod_kanban_assignees_multi .mod_kanban_card_assignees_row,
+.mod_kanban_card.mod_kanban_closed.mod_kanban_assignees_multi .mod_kanban_card_meta_row {
+    bottom: .35rem;
+}
+
+.mod_kanban_card.mod_kanban_closed.mod_kanban_assignees_multi .mod_kanban_card_assignees_row {
+    right: 5.15rem;
+}
+
+.mod_kanban_card.mod_kanban_closed.mod_kanban_assignees_has_summary .mod_kanban_card_footer {
+    padding-bottom: 3.15rem;
+}
+
 .mod_kanban_card.mod_kanban_closed .mod_kanban_card_meta_row {
     position: absolute;
     right: 0;
@@ -1546,6 +1563,23 @@ a.mod_kanban_attachment_item {
     position: relative;
     flex: 1 1 auto;
     padding-bottom: 1.55rem;
+}
+
+.mod_kanban_card.mod_kanban_footer_compact.mod_kanban_assignees_multi .mod_kanban_card_footer {
+    padding-bottom: 2.55rem;
+}
+
+.mod_kanban_card.mod_kanban_footer_compact.mod_kanban_assignees_multi .mod_kanban_card_assignees_row,
+.mod_kanban_card.mod_kanban_footer_compact.mod_kanban_assignees_multi .mod_kanban_card_meta_row {
+    bottom: .35rem;
+}
+
+.mod_kanban_card.mod_kanban_footer_compact.mod_kanban_assignees_multi .mod_kanban_card_assignees_row {
+    right: 5.15rem;
+}
+
+.mod_kanban_card.mod_kanban_footer_compact.mod_kanban_assignees_has_summary .mod_kanban_card_footer {
+    padding-bottom: 3.15rem;
 }
 
 .mod_kanban_card.mod_kanban_footer_compact .mod_kanban_card_meta_row {

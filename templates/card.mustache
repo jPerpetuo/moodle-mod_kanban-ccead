@@ -312,6 +312,8 @@ require([], function() {
             const assignees = Array.from(container.querySelectorAll('.mod_kanban_assigned_user')).filter(function(node) {
                 return !node.classList.contains(summaryclass);
             });
+            card.classList.toggle('mod_kanban_assignees_multi', assignees.length > 1);
+            card.classList.toggle('mod_kanban_assignees_has_summary', assignees.length > 2);
             assignees.forEach(function(node) {
                 node.classList.remove(hiddenclass);
             });

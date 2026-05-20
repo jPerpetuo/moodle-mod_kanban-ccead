@@ -757,6 +757,8 @@ export default class extends KanbanComponent {
         container.classList.remove('mod_kanban_assignees_enhanced');
         container.querySelectorAll('.mod_kanban_assignee_summary').forEach((node) => node.remove());
         const assignees = Array.from(container.querySelectorAll(selectors.ASSIGNEDUSER));
+        this.getElement().classList.toggle('mod_kanban_assignees_multi', assignees.length > 1);
+        this.getElement().classList.toggle('mod_kanban_assignees_has_summary', assignees.length > 2);
         assignees.forEach((node) => node.classList.remove('mod_kanban_assigned_user_hidden'));
         if (assignees.length <= 2) {
             container.classList.add('mod_kanban_assignees_enhanced');
