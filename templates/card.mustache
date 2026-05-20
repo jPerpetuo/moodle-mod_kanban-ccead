@@ -101,10 +101,17 @@ require(['core/ajax', 'core/notification'], function(Ajax, Notification) {
     }
 
     let issaving = false;
+    card.__modKanbanTitleSaveSeq = card.__modKanbanTitleSaveSeq || 0;
+
+    const decodeHtmlEntities = function(value) {
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = value || '';
+        return textarea.value;
+    };
 
     const renderTitle = function(displayvalue) {
         const safevalue = displayvalue || '';
-        inplace.setAttribute('data-value', safevalue);
+        inplace.setAttribute('data-value', decodeHtmlEntities(safevalue));
         inplace.innerHTML = '<a class="quickeditlink aalink" data-inplaceeditablelink="1">' + safevalue + '</a>';
         const discussiontitle = card.querySelector('.mod_kanban_discussion_modal .modal-title');
         if (discussiontitle) {
@@ -125,7 +132,31 @@ require(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         }
     };
 
-    const saveTitle = function(newvalue) {
+    const markTitlePending = function(expectedplainvalue) {
+        card.__modKanbanTitleSaveSeq += 1;
+        const seq = card.__modKanbanTitleSaveSeq;
+        const lockvalue = expectedplainvalue || '';
+        card.dataset.titleSavePending = '1';
+        card.dataset.titleSaveExpected = lockvalue;
+        card.dataset.titleSaveSeq = String(seq);
+        card.dataset.titleLockValue = lockvalue;
+        card.dataset.titleLockUntil = String(Date.now() + 2000);
+        return seq;
+    };
+
+    const clearTitlePending = function(seq = null) {
+        if (seq !== null) {
+            const currentseq = card.dataset.titleSaveSeq || '';
+            if (currentseq !== String(seq)) {
+                return;
+            }
+        }
+        delete card.dataset.titleSavePending;
+        delete card.dataset.titleSaveExpected;
+        delete card.dataset.titleSaveSeq;
+    };
+
+    const saveTitle = function(newvalue, saveseq = null) {
         if (issaving) {
             return;
         }
@@ -140,11 +171,18 @@ require(['core/ajax', 'core/notification'], function(Ajax, Notification) {
             },
         }])[0].then((data) => {
             const displayvalue = data.displayvalue !== undefined ? data.displayvalue : newvalue;
+            const plainconfirmed = decodeHtmlEntities(displayvalue);
             renderTitle(displayvalue);
+            card.dataset.titleLockValue = plainconfirmed;
+            card.dataset.titleLockUntil = String(Date.now() + 2000);
+            clearTitlePending(saveseq);
             issaving = false;
             return;
         }).fail((error) => {
             Notification.exception(error);
+            clearTitlePending(saveseq);
+            delete card.dataset.titleLockValue;
+            delete card.dataset.titleLockUntil;
             issaving = false;
         });
     };
@@ -162,7 +200,7 @@ require(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         e.stopPropagation();
         e.stopImmediatePropagation();
 
-        const currentvalue = inplace.getAttribute('data-value') || clickedlink.textContent || '';
+        const currentvalue = decodeHtmlEntities(inplace.getAttribute('data-value') || clickedlink.textContent || '');
         inplace.classList.add('inplaceeditingon');
         card.setAttribute('draggable', 'false');
         card.setAttribute('data-inplace-in-draggable', 'true');
@@ -200,8 +238,9 @@ require(['core/ajax', 'core/notification'], function(Ajax, Notification) {
             handled = true;
             detachOutsideHandlers();
             const savedvalue = textarea.value.trim() === '' ? '{{#str}} newcard, mod_kanban {{/str}}' : textarea.value;
+            const saveseq = markTitlePending(savedvalue);
             closeEditor(savedvalue, true);
-            saveTitle(savedvalue);
+            saveTitle(savedvalue, saveseq);
         };
         const cancel = function() {
             if (handled) {

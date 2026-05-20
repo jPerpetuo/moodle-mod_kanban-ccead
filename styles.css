@@ -1371,6 +1371,11 @@ a.mod_kanban_attachment_item {
     display: none;
 }
 
+/* If assignees are the only footer info, anchor them to the bottom of the card. */
+.mod_kanban_card:not(.mod_kanban_closed):not(.mod_kanban_hasduedate):not(.mod_kanban_hasdiscussion):not(.mod_kanban_hasdescription):not(.mod_kanban_hasattachment) .mod_kanban_card_assignees_row.has-assignees {
+    margin-top: auto;
+}
+
 .mod_kanban_card .mod_kanban_assignees {
     position: static;
     left: auto;
@@ -1407,7 +1412,7 @@ a.mod_kanban_attachment_item {
 }
 
 .mod_kanban_card .mod_kanban_assigned_user_name {
-    max-width: 11rem;
+    max-width: 8.8rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1497,7 +1502,7 @@ a.mod_kanban_attachment_item {
 .mod_kanban_card.mod_kanban_closed .mod_kanban_card_assignees_row {
     position: absolute;
     left: 0;
-    right: 3.8rem;
+    right: 4.9rem;
     bottom: .45rem;
     margin-top: 0;
     min-height: 0;
@@ -1505,6 +1510,34 @@ a.mod_kanban_attachment_item {
 }
 
 .mod_kanban_card.mod_kanban_closed .mod_kanban_assignees {
+    flex-wrap: nowrap;
+    overflow: hidden;
+}
+
+.mod_kanban_card.mod_kanban_footer_compact .mod_kanban_card_footer {
+    position: relative;
+    flex: 1 1 auto;
+    padding-bottom: 1.55rem;
+}
+
+.mod_kanban_card.mod_kanban_footer_compact .mod_kanban_card_meta_row {
+    position: absolute;
+    right: 0;
+    bottom: .45rem;
+    margin-top: 0;
+    min-height: 0;
+}
+
+.mod_kanban_card.mod_kanban_footer_compact .mod_kanban_card_assignees_row {
+    position: absolute;
+    left: 0;
+    right: 4.9rem;
+    bottom: .45rem;
+    margin-top: 0;
+    min-height: 0;
+}
+
+.mod_kanban_card.mod_kanban_footer_compact .mod_kanban_assignees {
     flex-wrap: nowrap;
     overflow: hidden;
 }
@@ -1558,7 +1591,7 @@ a.mod_kanban_attachment_item {
     justify-content: center;
     color: #198754;
     background: #d8e7c7;
-    border-radius: 999px;
+    border-radius: 6px;
     flex: 0 0 auto;
 }
 

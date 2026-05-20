@@ -66,6 +66,7 @@ export default class extends KanbanComponent {
      */
     create() {
         this.id = this.element.dataset.id;
+        this.element.__modKanbanCardComponent = this;
     }
 
     /**
@@ -190,6 +191,7 @@ export default class extends KanbanComponent {
         this.userid = state.board.userid;
         this.groupid = state.board.groupid;
         this._dueDateFormat();
+        this._syncFooterLayoutState();
     }
 
     /**
@@ -320,12 +322,27 @@ export default class extends KanbanComponent {
     /**
      * Dispatch event to add a message to discussion.
      */
-    _sendMessage() {
+    async _sendMessage() {
         let el = this.getElement(selectors.DISCUSSIONINPUT);
         let message = el.value.trim();
         if (message != '') {
-            this.reactive.dispatch('sendDiscussionMessage', this.id, message);
+            // Optimistic UI: show discussion indicator immediately.
+            const statecard = this.reactive?.state?.cards?.get(this.id);
+            if (statecard && !statecard.discussion) {
+                this._applyOptimisticCardPatch({
+                    id: this.id,
+                    discussion: 1,
+                });
+            }
+            const original = el.value;
             el.value = '';
+            try {
+                await Promise.resolve(this.reactive.dispatch('sendDiscussionMessage', this.id, message));
+                await Promise.resolve(this.reactive.dispatch('getDiscussionUpdates', this.id));
+            } catch (e) {
+                el.value = original;
+                displayException(e);
+            }
         }
     }
 
@@ -395,6 +412,20 @@ export default class extends KanbanComponent {
     _assignSelf(event) {
         let target = event.target.closest(selectors.ASSIGNSELF);
         let data = Object.assign({}, target.dataset);
+        const statecard = this.reactive?.state?.cards?.get(data.id);
+        const userid = String(this.reactive?.state?.board?.userid || this.userid || '');
+        if (statecard && userid) {
+            const assignees = Array.isArray(statecard.assignees) ? [...statecard.assignees] : [];
+            const alreadyassigned = assignees.some((id) => String(id) === userid);
+            if (!alreadyassigned) {
+                assignees.push(parseInt(userid, 10));
+                this._applyOptimisticCardPatch({
+                    id: data.id,
+                    assignees: assignees,
+                    selfassigned: true,
+                });
+            }
+        }
         this.reactive.dispatch('assignUser', data.id);
     }
 
@@ -462,27 +493,62 @@ export default class extends KanbanComponent {
                 this.getElements(selectors.ASSIGNEDUSER, this.id).length > 0;
             assigneesRow.classList.toggle('has-assignees', hasassignees);
         }
-        this.toggleClass(element.selfassigned, 'mod_kanban_selfassigned');
+        if (element.selfassigned !== undefined) {
+            this.toggleClass(element.selfassigned, 'mod_kanban_selfassigned');
+        }
         // Set card completion state.
-        this.toggleClass(element.completed == 1, 'mod_kanban_closed');
+        if (element.completed !== undefined) {
+            this.toggleClass(element.completed == 1, 'mod_kanban_closed');
+        }
         // Update title (also in modals).
         if (element.title !== undefined) {
+            const cardelement = this.getElement();
+            const pendingtitlesave = cardelement.dataset.titleSavePending === '1';
             // For Moodle inplace editing title is once needed plain and once with html entities encoded.
             // This avoids double encoding of html entities as the value of "data-value" is exactly what is shown
             // in the input field when clicking on the inplace editable.
             let doc = new DOMParser().parseFromString(element.title, 'text/html');
-            this.getElement(selectors.INPLACEEDITABLE).setAttribute('data-value', doc.documentElement.textContent);
+            const incomingtitleplain = doc.documentElement.textContent || '';
+            if (pendingtitlesave) {
+                const expectedtitle = cardelement.dataset.titleSaveExpected || '';
+                if (incomingtitleplain !== expectedtitle) {
+                    // Ignore stale title update while local title save is pending.
+                    return;
+                }
+                delete cardelement.dataset.titleSavePending;
+                delete cardelement.dataset.titleSaveExpected;
+                delete cardelement.dataset.titleSaveSeq;
+            }
+            const lockuntilraw = cardelement.dataset.titleLockUntil || '0';
+            const lockuntil = parseInt(lockuntilraw, 10) || 0;
+            const lockvalue = cardelement.dataset.titleLockValue || '';
+            if (lockuntil > Date.now()) {
+                if (lockvalue && incomingtitleplain !== lockvalue) {
+                    // Ignore stale updates during short post-save lock window.
+                    return;
+                }
+            } else {
+                delete cardelement.dataset.titleLockUntil;
+                delete cardelement.dataset.titleLockValue;
+            }
+            this.getElement(selectors.INPLACEEDITABLE).setAttribute('data-value', incomingtitleplain);
             this.getElement(selectors.INPLACEEDITABLE).querySelector('a').innerHTML = element.title;
             this.getElement(selectors.DISCUSSIONMODALTITLE).innerHTML = element.title;
         }
-        this.toggleClass(element.hasdescription, 'mod_kanban_hasdescription');
-        this.toggleClass(element.hasattachment, 'mod_kanban_hasattachment');
+        if (element.hasdescription !== undefined) {
+            this.toggleClass(element.hasdescription, 'mod_kanban_hasdescription');
+        }
+        if (element.hasattachment !== undefined) {
+            this.toggleClass(element.hasattachment, 'mod_kanban_hasattachment');
+        }
         // Update due date.
         if (element.duedate !== undefined) {
             this.getElement(selectors.DUEDATE).setAttribute('data-date', element.duedate);
             this._dueDateFormat();
         }
-        this.toggleClass(element.discussion, 'mod_kanban_hasdiscussion');
+        if (element.discussion !== undefined) {
+            this.toggleClass(element.discussion, 'mod_kanban_hasdiscussion');
+        }
         // Only option for now is background color.
         if (element.options !== undefined) {
             let options = JSON.parse(element.options);
@@ -504,6 +570,7 @@ export default class extends KanbanComponent {
                 this.getElement().classList.contains('mod_kanban_hasattachment')
             );
         }
+        this._syncFooterLayoutState();
         // Enable/disable dragging and inplace editing (e.g. if user is not assigned to the card anymore).
         this.checkEditing();
     }
@@ -637,7 +704,58 @@ export default class extends KanbanComponent {
     _unassignSelf(event) {
         let target = event.target.closest(selectors.UNASSIGNSELF);
         let data = Object.assign({}, target.dataset);
+        const statecard = this.reactive?.state?.cards?.get(data.id);
+        const userid = String(this.reactive?.state?.board?.userid || this.userid || '');
+        if (statecard && userid) {
+            const assignees = Array.isArray(statecard.assignees) ? [...statecard.assignees] : [];
+            const updatedassignees = assignees.filter((id) => String(id) !== userid);
+            this._applyOptimisticCardPatch({
+                id: data.id,
+                assignees: updatedassignees,
+                selfassigned: false,
+            });
+        }
         this.reactive.dispatch('unassignUser', data.id);
+    }
+
+    /**
+     * Apply a local optimistic card patch before backend confirmation.
+     * @param {Object} fields
+     */
+    _applyOptimisticCardPatch(fields) {
+        if (!this.reactive || !this.reactive.stateManager || !fields || fields.id === undefined) {
+            return;
+        }
+        const existing = this.reactive?.state?.cards?.get(fields.id);
+        if (!existing) {
+            return;
+        }
+        const merged = Object.assign({}, existing, fields);
+        this.reactive.stateManager.processUpdates([{
+            name: 'cards',
+            action: 'put',
+            fields: merged,
+        }]);
+    }
+
+    /**
+     * Keep footer layout compact when card has assignee and meta icons but no due date.
+     */
+    _syncFooterLayoutState() {
+        const card = this.getElement();
+        if (!card) {
+            return;
+        }
+        const assigneesrow = card.querySelector('.mod_kanban_card_assignees_row');
+        const metarow = card.querySelector('.mod_kanban_card_meta_row');
+        if (!assigneesrow || !metarow) {
+            return;
+        }
+        const hasassignees = assigneesrow.classList.contains('has-assignees');
+        const hasmeta = metarow.classList.contains('has-meta');
+        const hasduedate = card.classList.contains('mod_kanban_hasduedate');
+        const isclosed = card.classList.contains('mod_kanban_closed');
+        card.classList.toggle('mod_kanban_footer_compact', !isclosed && !hasduedate && hasassignees && hasmeta);
     }
 
     /**
@@ -727,10 +845,12 @@ export default class extends KanbanComponent {
      */
     _dueDateFormat() {
         const element = this.getElement(selectors.DUEDATE);
+        const card = this.getElement();
         let text = element.querySelector('.mod_kanban_duedate_text');
         const duedate = element.dataset.date * 1000;
 
         if (duedate > 0) {
+            card.classList.add('mod_kanban_hasduedate');
             const overdue = duedate < new Date().getTime();
             if (!text) {
                 element.innerHTML = '<span class="mod_kanban_duedate_icon"></span>' +
@@ -755,6 +875,7 @@ export default class extends KanbanComponent {
                 element.classList.remove('mod_kanban_overdue');
             }
         } else {
+            card.classList.remove('mod_kanban_hasduedate');
             element.innerHTML = '';
         }
     }
