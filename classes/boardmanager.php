@@ -1413,10 +1413,30 @@ class boardmanager {
     public function update_column(int $columnid, array $data): void {
         global $DB;
         $column = $this->get_column($columnid);
+        $alloweddotcolors = [
+            '#9AA4B2',
+            '#3579DC',
+            '#4DB56A',
+            '#7C6ED6',
+            '#1D74A6',
+            '#009688',
+            '#C68A2E',
+            '#B96A55',
+            '#A9597A',
+            '#7A7A2E',
+        ];
+        $dotcolor = '';
+        if (!empty($data['dotcolor'])) {
+            $candidate = strtoupper(clean_param($data['dotcolor'], PARAM_TEXT));
+            if (in_array($candidate, $alloweddotcolors)) {
+                $dotcolor = $candidate;
+            }
+        }
         $options = [
             'autoclose' => !empty($data['autoclose']),
             'autohide' => !empty($data['autohide']),
             'wiplimit' => empty($data['wiplimitenable']) ? 0 : $data['wiplimit'],
+            'dotcolor' => $dotcolor,
         ];
         if (isset($data['title'])) {
             $data['title'] = s($data['title']);

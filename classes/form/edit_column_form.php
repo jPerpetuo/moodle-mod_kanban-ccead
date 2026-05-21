@@ -68,6 +68,79 @@ class edit_column_form extends dynamic_form {
         $mform->setType('wiplimitenable', PARAM_BOOL);
 
         $mform->disabledIf('wiplimit', 'wiplimitenable', 'notchecked');
+
+        $mform->addElement('html', '<style>
+            #fgroup_id_dotcolorgroup .fgroup,
+            #fgroup_id_dotcolorgroup .felement.fgroup,
+            #fitem_id_dotcolorgroup .fgroup,
+            #fitem_id_dotcolorgroup .felement.fgroup {
+                display: grid;
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+                gap: .55rem .7rem;
+                max-width: 13.5rem;
+                margin-top: .28rem;
+            }
+            #fgroup_id_dotcolorgroup label,
+            #fitem_id_dotcolorgroup label {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 1.8rem;
+                height: 1.8rem;
+                margin: 0;
+                cursor: pointer;
+            }
+            #fgroup_id_dotcolorgroup .mod_kanban_dotcolor_option,
+            #fitem_id_dotcolorgroup .mod_kanban_dotcolor_option {
+                appearance: none;
+                -webkit-appearance: none;
+                width: 1.2rem;
+                height: 1.2rem;
+                border: 1px solid #7a8494;
+                border-radius: 50%;
+                margin: 0;
+                cursor: pointer;
+                transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+            }
+            #fgroup_id_dotcolorgroup .mod_kanban_dotcolor_option:hover,
+            #fgroup_id_dotcolorgroup .mod_kanban_dotcolor_option:focus,
+            #fitem_id_dotcolorgroup .mod_kanban_dotcolor_option:hover,
+            #fitem_id_dotcolorgroup .mod_kanban_dotcolor_option:focus {
+                transform: scale(1.08);
+            }
+            #fgroup_id_dotcolorgroup .mod_kanban_dotcolor_option:checked,
+            #fitem_id_dotcolorgroup .mod_kanban_dotcolor_option:checked {
+                border-color: #204f95;
+                box-shadow: 0 0 0 2px #fff, 0 0 0 3px #204f95;
+            }
+        </style>');
+
+        $dotcolors = [
+            '#9AA4B2' => ['label' => get_string('dotcolorgray', 'kanban')],
+            '#3579DC' => ['label' => get_string('dotcolorblue', 'kanban')],
+            '#4DB56A' => ['label' => get_string('dotcolorgreen', 'kanban')],
+            '#7C6ED6' => ['label' => get_string('dotcolorpurple', 'kanban')],
+            '#1D74A6' => ['label' => get_string('dotcolorcyan', 'kanban')],
+            '#009688' => ['label' => get_string('dotcolorteal', 'kanban')],
+            '#C68A2E' => ['label' => get_string('dotcoloramber', 'kanban')],
+            '#B96A55' => ['label' => get_string('dotcolorterracotta', 'kanban')],
+            '#A9597A' => ['label' => get_string('dotcolorrose', 'kanban')],
+            '#7A7A2E' => ['label' => get_string('dotcolorolive', 'kanban')],
+        ];
+        $dotcolorelements = [];
+        foreach ($dotcolors as $value => $meta) {
+            $dotcolorelements[] = $mform->createElement('radio', 'dotcolor', '', '', $value, [
+                'class' => 'mod_kanban_dotcolor_option',
+                'style' => 'appearance:none;-webkit-appearance:none;background:' . s($value) .
+                    ';width:1.35rem;height:1.35rem;border-radius:50%;border:1px solid #7a8494;margin:0;',
+                'title' => $meta['label'],
+                'aria-label' => $meta['label'],
+            ]);
+        }
+        $mform->addGroup($dotcolorelements, 'dotcolorgroup', get_string('dotcolor', 'kanban'), '', false);
+        $mform->addHelpButton('dotcolorgroup', 'dotcolor', 'kanban');
+        $mform->setType('dotcolor', PARAM_TEXT);
+        $mform->setDefault('dotcolor', '#9AA4B2');
     }
 
     /**
@@ -131,11 +204,18 @@ class edit_column_form extends dynamic_form {
         $column->cmid = $this->optional_param('cmid', null, PARAM_INT);
         $column->title = html_entity_decode($column->title, ENT_COMPAT, 'UTF-8');
         $column->boardid = $column->kanban_board;
-        $options = json_decode($column->options);
-        $column->autoclose = $options->autoclose;
-        $column->autohide = $options->autohide;
+        $options = json_decode($column->options ?? '{}');
+        if (empty($options) || !is_object($options)) {
+            $options = (object)[];
+        }
+        $column->autoclose = !empty($options->autoclose);
+        $column->autohide = !empty($options->autohide);
         $column->wiplimitenable = !empty($options->wiplimit);
         $column->wiplimit = (empty($options->wiplimit) ? 0 : $options->wiplimit);
+        $column->dotcolor = empty($options->dotcolor) ? '' : strtoupper(clean_param($options->dotcolor, PARAM_TEXT));
+        if (empty($column->dotcolor)) {
+            $column->dotcolor = '#9AA4B2';
+        }
         $this->set_data($column);
     }
 

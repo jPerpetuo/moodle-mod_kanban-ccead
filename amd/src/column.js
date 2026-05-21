@@ -321,10 +321,23 @@ export default class extends KanbanComponent {
         }
         // Only autohide option is relevant for the frontend for now. autoclose option is handled by the backend.
         if (element.options !== undefined) {
-            let options = JSON.parse(element.options);
+            let options = {};
+            try {
+                options = JSON.parse(element.options);
+            } catch (e) {
+                options = {};
+            }
             this.toggleClass(options.autohide, 'mod_kanban_autohide');
             this.toggleClass(options.wiplimit > 0, 'mod_kanban_column_wiplimit');
             this.getElement(selectors.WIPLIMIT).innerHTML = options.wiplimit;
+            const dot = this.getElement('.mod_kanban_column_dot');
+            if (dot) {
+                if (options.dotcolor) {
+                    dot.style.setProperty('background', options.dotcolor);
+                } else {
+                    dot.style.removeProperty('background');
+                }
+            }
         }
         this.getElement(selectors.CARDCOUNT).innerHTML = this.getElements(selectors.CARD).length;
         // Enable/disable dragging (e.g. if column is locked).
