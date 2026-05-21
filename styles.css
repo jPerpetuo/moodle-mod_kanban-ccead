@@ -540,6 +540,11 @@ a.mod_kanban_attachment_item {
     transform: translateY(-14px);
 }
 
+.mod_kanban_history_modal .btn-close,
+.mod_kanban_description_modal .btn-close {
+    transform: translateY(-14px);
+}
+
 .mod_kanban_description_modal_assignees_block {
     margin-top: .7rem;
 }
