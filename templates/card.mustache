@@ -338,7 +338,7 @@ require([], function() {
                 summary.setAttribute('tabindex', '0');
 
                 if (hiddennames.length > 0) {
-                    summary.setAttribute('title', hiddennames.join(', '));
+                    summary.setAttribute('title', hiddennames.join('\n'));
                 }
 
                 const icon = document.createElement('span');

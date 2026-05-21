@@ -790,7 +790,7 @@ export default class extends KanbanComponent {
         summary.appendChild(icon);
         summary.appendChild(name);
         if (hiddennames.length > 0) {
-            summary.setAttribute('title', hiddennames.join(', '));
+            summary.setAttribute('title', hiddennames.join('\n'));
         }
         container.appendChild(summary);
         container.classList.add('mod_kanban_assignees_enhanced');
