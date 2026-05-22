@@ -252,7 +252,7 @@ $string['userboardsenabled'] = 'Personal boards enabled';
 $string['userboardsonly'] = 'Personal boards only';
 $string['viewmembers'] = 'View members';
 $string['wiplimit'] = 'WIP limit per person';
-$string['wiplimitenable'] = 'Enable WIP limit';
+$string['wiplimitenable'] = 'Set card limit per person in this column';
 $string['wiplimitgreaterzero'] = 'WIP limit needs to be greater than zero';
 $string['wiplimitreached'] = 'WIP limit is reached for {$a->users}.';
 

@@ -78,7 +78,7 @@ class edit_column_form extends dynamic_form {
                 grid-template-columns: repeat(5, minmax(0, 1fr));
                 gap: .55rem .7rem;
                 max-width: 13.5rem;
-                margin-top: .28rem;
+                margin-top: .75rem;
             }
             #fgroup_id_dotcolorgroup label,
             #fitem_id_dotcolorgroup label {
@@ -132,7 +132,7 @@ class edit_column_form extends dynamic_form {
             $dotcolorelements[] = $mform->createElement('radio', 'dotcolor', '', '', $value, [
                 'class' => 'mod_kanban_dotcolor_option',
                 'style' => 'appearance:none;-webkit-appearance:none;background:' . s($value) .
-                    ';width:1.35rem;height:1.35rem;border-radius:50%;border:1px solid #7a8494;margin:0;',
+                    ';width:1.35rem;height:1.35rem;border-radius:50%;border:1px solid #7a8494;margin:0;position:relative;top:5px;',
                 'title' => $meta['label'],
                 'aria-label' => $meta['label'],
             ]);
