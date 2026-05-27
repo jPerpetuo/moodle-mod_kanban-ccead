@@ -1735,6 +1735,24 @@ a.mod_kanban_attachment_item {
     font-weight: 600;
 }
 
+.mod_kanban_addcolumn,
+.mod_kanban_addcolumn:hover,
+.mod_kanban_addcolumn:focus,
+.mod_kanban_addcolumn:focus-visible,
+.mod_kanban_addcolumn:active {
+    text-decoration: none;
+}
+
+.mod_kanban_addcolumn.btn-link,
+.mod_kanban_addcolumn.btn-link:hover,
+.mod_kanban_addcolumn.btn-link:focus,
+.mod_kanban_addcolumn.btn-link:focus-visible,
+.mod_kanban_addcolumn.btn-link:active {
+    --bs-btn-hover-text-decoration: none;
+    --bs-btn-text-decoration: none;
+    text-decoration: none;
+}
+
 .mod_kanban_column > .mod_kanban_addcard_link:hover,
 .mod_kanban_column > .mod_kanban_addcard_link:focus,
 .mod_kanban_column > .mod_kanban_addcard_link:focus-visible,
