@@ -182,10 +182,120 @@ class boardmanager {
      * @return int Id of the new board
      */
     public function create_template(): int {
-        // For now, this function does not touch existing templates.
+        $this->delete_instance_templates();
         $id = $this->create_board_from_template($this->board->id, ['template' => 1]);
         $this->formatter->put('common', ['template' => $id]);
         return $id;
+    }
+
+    /**
+     * Apply the current template to an existing board.
+     *
+     * This replaces all columns and cards in the target board while preserving
+     * the board identity (id, owner/group scope).
+     *
+     * @param int $targetboardid Board id to replace.
+     * @param int $templateid Template board id, defaults to the latest template.
+     * @return void
+     * @throws moodle_exception
+     */
+    public function apply_template_to_board(int $targetboardid, int $templateid = 0): void {
+        global $DB;
+
+        if (empty($templateid)) {
+            $templateid = $this->get_template_board_id();
+        }
+        if (empty($templateid)) {
+            throw new moodle_exception('notemplateavailable', 'mod_kanban');
+        }
+
+        $template = helper::get_cached_board($templateid);
+        $targetboard = helper::get_cached_board($targetboardid);
+
+        if ((int)$template->id === (int)$targetboard->id) {
+            return;
+        }
+
+        if ($template->kanban_instance == 0) {
+            $context = context_system::instance();
+        } else {
+            $context = context_module::instance($this->cmid, 'kanban');
+        }
+
+        $this->clear_board_contents($targetboardid);
+
+        $columns = $DB->get_records('kanban_column', ['kanban_board' => $template->id]);
+        $cards = $DB->get_records('kanban_card', ['kanban_board' => $template->id]);
+        $newcolumns = [];
+        $newcards = [];
+        $now = time();
+
+        foreach ($columns as $column) {
+            $newcolumns[$column->id] = clone $column;
+            $newcolumns[$column->id]->title = clean_param($column->title, PARAM_TEXT);
+            $newcolumns[$column->id]->kanban_board = $targetboardid;
+            $newcolumns[$column->id]->timecreated = $now;
+            $newcolumns[$column->id]->timemodified = $now;
+            unset($newcolumns[$column->id]->id);
+            $newcolumns[$column->id]->id = $DB->insert_record('kanban_column', $newcolumns[$column->id]);
+        }
+
+        foreach ($cards as $card) {
+            $newcards[$card->id] = clone $card;
+            $newcards[$card->id]->kanban_board = $targetboardid;
+            $newcards[$card->id]->kanban_column = $newcolumns[$card->kanban_column]->id;
+            $newcards[$card->id]->timecreated = $now;
+            $newcards[$card->id]->timemodified = $now;
+            $newcards[$card->id]->originalid = $card->id;
+            unset($newcards[$card->id]->id);
+            unset($newcards[$card->id]->createdby);
+            $newcards[$card->id]->id = $DB->insert_record('kanban_card', $newcards[$card->id]);
+            $this->copy_attachment_files($context->id, $card->id, $newcards[$card->id]->id);
+        }
+
+        $boardupdate = [
+            'id' => $targetboardid,
+            'sequence' => helper::sequence_replace($template->sequence, $newcolumns),
+            'locked' => $template->locked,
+            'timemodified' => $now,
+        ];
+        $DB->update_record('kanban_board', $boardupdate);
+        helper::update_cached_board($targetboardid);
+        helper::update_cached_timestamp($targetboardid, constants::MOD_KANBAN_COLUMN, $now);
+        helper::update_cached_timestamp($targetboardid, constants::MOD_KANBAN_CARD, $now);
+
+        foreach ($newcolumns as $newcolumn) {
+            $newcolumn->sequence = helper::sequence_replace($newcolumn->sequence, $newcards);
+            $DB->update_record('kanban_column', $newcolumn);
+        }
+
+        $this->load_board($targetboardid);
+    }
+
+    /**
+     * Apply the current template to all configured group boards.
+     *
+     * @param int $templateid Template board id, defaults to the latest template.
+     * @return void
+     * @throws moodle_exception
+     */
+    public function apply_template_to_all_group_boards(int $templateid = 0): void {
+        if (empty($templateid)) {
+            $templateid = $this->get_template_board_id();
+        }
+        if (empty($templateid)) {
+            throw new moodle_exception('notemplateavailable', 'mod_kanban');
+        }
+
+        $groups = $this->get_available_board_groups();
+        if (empty($groups)) {
+            throw new moodle_exception('nogroupavailable', 'mod_kanban');
+        }
+
+        foreach ($groups as $group) {
+            $boardid = $this->get_or_create_board(0, (int)$group->id);
+            $this->apply_template_to_board($boardid, $templateid);
+        }
     }
 
     /**
@@ -592,6 +702,55 @@ class boardmanager {
             }
             return $newboard['id'];
         }
+    }
+
+    /**
+     * Delete all instance-level template boards before saving a new one.
+     *
+     * Site-wide templates are intentionally preserved.
+     *
+     * @return void
+     */
+    private function delete_instance_templates(): void {
+        global $DB;
+
+        $templateids = $DB->get_fieldset_select(
+            'kanban_board',
+            'id',
+            'kanban_instance = :instance AND template = :template',
+            ['instance' => $this->kanban->id, 'template' => 1]
+        );
+
+        foreach ($templateids as $templateid) {
+            $this->clear_board_contents((int)$templateid);
+            $DB->delete_records('kanban_board', ['id' => $templateid]);
+            helper::invalidate_cached_board((int)$templateid);
+        }
+    }
+
+    /**
+     * Remove all columns/cards/history from a board while keeping the board record.
+     *
+     * @param int $boardid Board id to clear.
+     * @return void
+     */
+    private function clear_board_contents(int $boardid): void {
+        global $DB;
+
+        $cardids = $DB->get_fieldset_select('kanban_card', 'id', 'kanban_board = :id', ['id' => $boardid]);
+        if (!empty($cardids)) {
+            $this->delete_cards($cardids, false);
+        }
+
+        $DB->delete_records('kanban_history', ['kanban_board' => $boardid]);
+        $DB->delete_records('kanban_column', ['kanban_board' => $boardid]);
+        $DB->delete_records('kanban_card', ['kanban_board' => $boardid]);
+        $DB->update_record('kanban_board', [
+            'id' => $boardid,
+            'sequence' => '',
+            'timemodified' => time(),
+        ]);
+        helper::update_cached_board($boardid);
     }
 
     /**

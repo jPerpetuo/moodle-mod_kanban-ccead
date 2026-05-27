@@ -1589,7 +1589,7 @@ a.mod_kanban_attachment_item {
 .mod_kanban_card.mod_kanban_footer_compact .mod_kanban_card_meta_row {
     position: absolute;
     right: 0;
-    bottom: .45rem;
+    bottom: 0;
     margin-top: 0;
     min-height: 0;
 }
@@ -1598,7 +1598,7 @@ a.mod_kanban_attachment_item {
     position: absolute;
     left: 0;
     right: 4.9rem;
-    bottom: .45rem;
+    bottom: 0;
     margin-top: 0;
     min-height: 0;
 }

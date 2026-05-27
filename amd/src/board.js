@@ -73,21 +73,23 @@ export default class extends KanbanComponent {
                 'click',
                 this._unlockColumns
             );
-            this.addEventListener(
-                this.getElement(selectors.SAVEASTEMPLATE),
-                'click',
-                this._templateConfirm
-            );
-            this.addEventListener(
-                this.getElement(selectors.SHOWTEMPLATE),
-                'click',
-                this._showTemplate
-            );
-            this.addEventListener(
-                this.getElement(selectors.DELETETEMPLATE),
-                'click',
-                this._deleteTemplateConfirm
-            );
+            if (state.common.boardmode) {
+                this.addEventListener(
+                    this.getElement(selectors.SAVEBOARDTEMPLATE),
+                    'click',
+                    this._saveTemplateConfirm
+                );
+                this.addEventListener(
+                    this.getElement(selectors.APPLYTEMPLATETOBOARD),
+                    'click',
+                    this._applyTemplateToBoardConfirm
+                );
+                this.addEventListener(
+                    this.getElement(selectors.APPLYTEMPLATETOALLGROUPBOARDS),
+                    'click',
+                    this._applyTemplateToAllGroupBoardsConfirm
+                );
+            }
             this.addEventListener(
                 this.getElement(selectors.DELETEBOARD),
                 'click',
@@ -128,24 +130,31 @@ export default class extends KanbanComponent {
     }
 
     /**
-     * Called to show template.
-     */
-    _showTemplate() {
-        window.location.href =
-            M.cfg.wwwroot +
-            '/mod/kanban/view.php?id=' +
-            this.reactive.state.common.id +
-            '&boardid=' +
-            this.reactive.state.common.template;
-    }
-
-    /**
      * Reload current page.
      */
     _reload() {
         window.location.replace(
             M.cfg.wwwroot + '/mod/kanban/view.php?id=' + this.reactive.state.common.id +
             '&userid=' + this.reactive.state.common.userid);
+    }
+
+    /**
+     * Build a board action URL with sesskey.
+     * @param {string} action Action name
+     * @returns {string}
+     */
+    _getBoardActionUrl(action) {
+        return `${M.cfg.wwwroot}/mod/kanban/board_action.php?id=${this.reactive.state.common.id}` +
+            `&boardid=${this.reactive.state.board.id}&action=${encodeURIComponent(action)}` +
+            `&sesskey=${encodeURIComponent(M.cfg.sesskey)}`;
+    }
+
+    /**
+     * Navigate to a board action endpoint.
+     * @param {string} action Action name
+     */
+    _runBoardAction(action) {
+        window.location.assign(this._getBoardActionUrl(action));
     }
 
     /**
@@ -220,7 +229,7 @@ export default class extends KanbanComponent {
     /**
      * Display confirmation modal for saving a board as template.
      */
-    _templateConfirm() {
+    _saveTemplateConfirm() {
         Str.get_strings([
             {key: 'saveastemplate', component: 'mod_kanban'},
             {key: 'saveastemplateconfirm', component: 'mod_kanban'},
@@ -231,17 +240,50 @@ export default class extends KanbanComponent {
                 strings[1],
                 strings[2],
                 () => {
-                    this._saveAsTemplate();
+                    this._runBoardAction('save_template');
                 }
             );
         }).catch((error) => Log.debug(error));
     }
 
     /**
-     * Called when current board should be saved as template.
+     * Display confirmation modal for applying the saved template to the current board.
      */
-    _saveAsTemplate() {
-        this.reactive.dispatch('saveAsTemplate');
+    _applyTemplateToBoardConfirm() {
+        Str.get_strings([
+            {key: 'applytemplatetothisboard', component: 'mod_kanban'},
+            {key: 'applytemplatetothisboardconfirm', component: 'mod_kanban'},
+            {key: 'applytemplateaction', component: 'mod_kanban'},
+        ]).then((strings) => {
+            return saveCancel(
+                strings[0],
+                strings[1],
+                strings[2],
+                () => {
+                    this._runBoardAction('apply_template_to_board');
+                }
+            );
+        }).catch((error) => Log.debug(error));
+    }
+
+    /**
+     * Display confirmation modal for applying the saved template to all group boards.
+     */
+    _applyTemplateToAllGroupBoardsConfirm() {
+        Str.get_strings([
+            {key: 'applytemplatetoallgroupboards', component: 'mod_kanban'},
+            {key: 'applytemplatetoallgroupboardsconfirm', component: 'mod_kanban'},
+            {key: 'applytemplateaction', component: 'mod_kanban'},
+        ]).then((strings) => {
+            return saveCancel(
+                strings[0],
+                strings[1],
+                strings[2],
+                () => {
+                    this._runBoardAction('apply_template_to_all_group_boards');
+                }
+            );
+        }).catch((error) => Log.debug(error));
     }
 
     /**
@@ -251,26 +293,6 @@ export default class extends KanbanComponent {
         Str.get_strings([
             {key: 'deleteboard', component: 'mod_kanban'},
             {key: 'deleteboardconfirm', component: 'mod_kanban'},
-            {key: 'delete', component: 'core'},
-        ]).then((strings) => {
-            return saveCancel(
-                strings[0],
-                strings[1],
-                strings[2],
-                () => {
-                    this._deleteBoard();
-                }
-            );
-        }).catch((error) => Log.debug(error));
-    }
-
-    /**
-     * Display confirmation modal for deleting a template.
-     */
-    _deleteTemplateConfirm() {
-        Str.get_strings([
-            {key: 'deletetemplate', component: 'mod_kanban'},
-            {key: 'deletetemplateconfirm', component: 'mod_kanban'},
             {key: 'delete', component: 'core'},
         ]).then((strings) => {
             return saveCancel(
