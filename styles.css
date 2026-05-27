@@ -1269,7 +1269,6 @@ a.mod_kanban_attachment_item {
     margin: 0 0 .6rem;
     border: 1px solid #e1e5ea;
     border-radius: .45rem;
-    background: #fff !important;
     box-shadow: 0 .08rem .25rem rgba(15, 23, 42, .05);
 }
 
@@ -1649,6 +1648,9 @@ a.mod_kanban_attachment_item {
     height: 1.6rem;
     color: #6b7280;
     margin-left: -0.1875rem;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
 }
 
 .mod_kanban_card .mod_kanban_card_completion_indicator {
@@ -1673,6 +1675,9 @@ a.mod_kanban_attachment_item {
 .mod_kanban_card .mod_kanban_detail_trigger:hover,
 .mod_kanban_card .mod_kanban_detail_trigger:focus {
     color: #2457aa;
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
     text-decoration: none;
 }
 

@@ -1261,6 +1261,7 @@ class boardmanager {
             'repeat_interval',
             'repeat_interval_type',
             'repeat_newduedate',
+            'background',
         ];
         // Do some extra sanitizing.
         if (isset($data['title'])) {
@@ -1275,8 +1276,35 @@ class boardmanager {
         if (isset($data['options'])) {
             $data['options'] = helper::sanitize_json_string($data['options']);
         }
-        if (!empty($data['color'])) {
-            $data['options'] = json_encode(['background' => $data['color']]);
+        $allowedcardcolors = [
+            '#FFFFFF',
+            '#9AA4B2',
+            '#3579DC',
+            '#4DB56A',
+            '#7C6ED6',
+            '#1D74A6',
+            '#009688',
+            '#C68A2E',
+            '#B96A55',
+            '#A9597A',
+            '#7A7A2E',
+        ];
+        $selectedbackground = '';
+        if (!empty($data['currentcolor'])) {
+            $selectedbackground = strtoupper(clean_param($data['currentcolor'], PARAM_TEXT));
+        } else if (!empty($data['color'])) {
+            $selectedbackground = strtoupper(clean_param($data['color'], PARAM_TEXT));
+        }
+        if ($selectedbackground !== '') {
+            $selectedbackground = ltrim($selectedbackground, '#');
+            if (preg_match('/^[0-9A-F]{6}$/', $selectedbackground)) {
+                $selectedbackground = '#' . $selectedbackground;
+            }
+        }
+        if (!empty($selectedbackground) && in_array($selectedbackground, $allowedcardcolors, true)) {
+            $data['color'] = $selectedbackground;
+            $data['options'] = json_encode(['background' => $selectedbackground]);
+            $data['background'] = $selectedbackground;
         }
         $card = (array) $this->get_card($cardid);
         $cardupdate = [];
@@ -1287,6 +1315,10 @@ class boardmanager {
             if ($card[$key] != $data[$key]) {
                 $cardupdate[$key] = $data[$key];
             }
+        }
+        if (!empty($selectedbackground) && in_array($selectedbackground, $allowedcardcolors, true)) {
+            $cardupdate['options'] = json_encode(['background' => $selectedbackground]);
+            $cardupdate['background'] = $selectedbackground;
         }
         $cardupdate['id'] = $cardid;
         $cardupdate['timemodified'] = time();

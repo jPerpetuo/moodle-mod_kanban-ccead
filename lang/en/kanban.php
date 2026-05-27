@@ -84,6 +84,7 @@ $string['deletecolumnconfirm'] = 'Do you really want to delete this column?';
 $string['dotcolor'] = 'Column marker';
 $string['dotcolor_help'] = 'Defines the color of the indicator shown next to the column title.';
 $string['dotcolordefault'] = 'Default (automatic)';
+$string['dotcolorwhite'] = 'White';
 $string['dotcolorgray'] = 'Gray';
 $string['dotcolorblue'] = 'Blue';
 $string['dotcolorgreen'] = 'Green';

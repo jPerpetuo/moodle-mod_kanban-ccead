@@ -459,6 +459,8 @@ class helper {
             $key = clean_param(clean_param($key, PARAM_CLEANHTML), PARAM_NOTAGS);
             if (is_bool($value) || is_integer($value)) {
                 $json[$key] = $value;
+            } else if (is_string($value) && preg_match('/^#[0-9A-Fa-f]{6}$/', $value)) {
+                $json[$key] = strtoupper($value);
             } else {
                 $json[$key] = is_array($value)
                     ? clean_param_array($value, PARAM_CLEANHTML, true)

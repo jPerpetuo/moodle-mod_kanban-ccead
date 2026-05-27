@@ -561,10 +561,16 @@ export default class extends KanbanComponent {
         if (element.options !== undefined) {
             let options = JSON.parse(element.options);
             if (options.background === undefined) {
-                this.getElement().removeAttribute('style');
+                if (element.background === undefined) {
+                    this.getElement().removeAttribute('style');
+                } else {
+                    this.getElement().setAttribute('style', 'background-color: ' + element.background);
+                }
             } else {
                 this.getElement().setAttribute('style', 'background-color: ' + options.background);
             }
+        } else if (element.background !== undefined) {
+            this.getElement().setAttribute('style', 'background-color: ' + element.background);
         }
         const metaRow = this.getElement().querySelector('.mod_kanban_card_meta_row');
         if (metaRow) {

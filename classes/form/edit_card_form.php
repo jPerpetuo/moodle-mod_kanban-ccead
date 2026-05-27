@@ -110,9 +110,78 @@ class edit_card_form extends dynamic_form {
 
         $mform->addElement('filemanager', 'attachments', get_string('attachments', 'kanban'));
 
-        $mform->addElement('color', 'color', get_string('color', 'mod_kanban'), ['size' => 5]);
+        $mform->addElement('html', '<style>
+            #fgroup_id_colorgroup .fgroup,
+            #fgroup_id_colorgroup .felement.fgroup,
+            #fitem_id_colorgroup .fgroup,
+            #fitem_id_colorgroup .felement.fgroup {
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: .55rem .7rem;
+                max-width: 20rem;
+            }
+            #fgroup_id_colorgroup label,
+            #fitem_id_colorgroup label {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 1.8rem;
+                height: 1.8rem;
+                margin: 0;
+                cursor: pointer;
+            }
+            #fgroup_id_colorgroup .mod_kanban_cardcolor_option,
+            #fitem_id_colorgroup .mod_kanban_cardcolor_option {
+                appearance: none;
+                -webkit-appearance: none;
+                width: 1.2rem;
+                height: 1.2rem;
+                border: 1px solid #7a8494;
+                border-radius: 50%;
+                margin: 0;
+                cursor: pointer;
+                transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+            }
+            #fgroup_id_colorgroup .mod_kanban_cardcolor_option:hover,
+            #fgroup_id_colorgroup .mod_kanban_cardcolor_option:focus,
+            #fitem_id_colorgroup .mod_kanban_cardcolor_option:hover,
+            #fitem_id_colorgroup .mod_kanban_cardcolor_option:focus {
+                transform: scale(1.08);
+            }
+            #fgroup_id_colorgroup .mod_kanban_cardcolor_option:checked,
+            #fitem_id_colorgroup .mod_kanban_cardcolor_option:checked {
+                border-color: #204f95;
+                box-shadow: 0 0 0 2px #fff, 0 0 0 3px #204f95;
+            }
+        </style>');
+
+        $cardcolors = [
+            '#FFFFFF' => ['label' => get_string('dotcolorwhite', 'mod_kanban')],
+            '#9AA4B2' => ['label' => get_string('dotcolorgray', 'mod_kanban')],
+            '#3579DC' => ['label' => get_string('dotcolorblue', 'mod_kanban')],
+            '#4DB56A' => ['label' => get_string('dotcolorgreen', 'mod_kanban')],
+            '#7C6ED6' => ['label' => get_string('dotcolorpurple', 'mod_kanban')],
+            '#1D74A6' => ['label' => get_string('dotcolorcyan', 'mod_kanban')],
+            '#009688' => ['label' => get_string('dotcolorteal', 'mod_kanban')],
+            '#C68A2E' => ['label' => get_string('dotcoloramber', 'mod_kanban')],
+            '#B96A55' => ['label' => get_string('dotcolorterracotta', 'mod_kanban')],
+            '#A9597A' => ['label' => get_string('dotcolorrose', 'mod_kanban')],
+            '#7A7A2E' => ['label' => get_string('dotcolorolive', 'mod_kanban')],
+        ];
+        $colorelements = [];
+        foreach ($cardcolors as $value => $meta) {
+            $colorelements[] = $mform->createElement('radio', 'color', '', '', $value, [
+                'class' => 'mod_kanban_cardcolor_option',
+                'style' => 'appearance:none;-webkit-appearance:none;background:' . s($value) .
+                    ';width:1.35rem;height:1.35rem;border-radius:50%;border:1px solid #7a8494;margin:0;',
+                'title' => $meta['label'],
+                'aria-label' => $meta['label'],
+            ]);
+        }
+        $mform->addGroup($colorelements, 'colorgroup', get_string('color', 'mod_kanban'), '', false);
         $mform->setType('color', PARAM_TEXT);
-        $mform->setDefault('color', '#ffffff');
+        $mform->setDefault('color', '#FFFFFF');
     }
 
     /**
@@ -156,7 +225,40 @@ class edit_card_form extends dynamic_form {
         $boardid = $this->optional_param('boardid', null, PARAM_INT);
         $context = $this->get_context_for_dynamic_submission();
         $formdata = $this->get_data();
-        $formdata->options = json_encode(['background' => $formdata->color]);
+
+        $allowedcolors = [
+            '#FFFFFF',
+            '#9AA4B2',
+            '#3579DC',
+            '#4DB56A',
+            '#7C6ED6',
+            '#1D74A6',
+            '#009688',
+            '#C68A2E',
+            '#B96A55',
+            '#A9597A',
+            '#7A7A2E',
+        ];
+
+        $selectedcolor = '';
+        $requestcolor = strtoupper(trim((string)$this->optional_param('color', '', PARAM_RAW)));
+        if (!empty($requestcolor)) {
+            $selectedcolor = $requestcolor;
+        } else if (!empty($formdata->color)) {
+            $selectedcolor = strtoupper(clean_param($formdata->color, PARAM_TEXT));
+        }
+        if ($selectedcolor !== '') {
+            $selectedcolor = ltrim($selectedcolor, '#');
+            if (preg_match('/^[0-9A-F]{6}$/', $selectedcolor)) {
+                $selectedcolor = '#' . $selectedcolor;
+            }
+        }
+        if (!in_array($selectedcolor, $allowedcolors, true)) {
+            $selectedcolor = '#FFFFFF';
+        }
+        $formdata->color = $selectedcolor;
+        $formdata->background = $selectedcolor;
+        $formdata->options = json_encode(['background' => $selectedcolor]);
 
         if (!has_capability('mod/kanban:assignothers', $context)) {
             unset($formdata->assignees);
@@ -197,7 +299,7 @@ class edit_card_form extends dynamic_form {
         $card->cmid = $this->optional_param('cmid', null, PARAM_INT);
         $card->boardid = $card->kanban_board;
         $card->assignees = $DB->get_fieldset_select('kanban_assignee', 'userid', 'kanban_card = :cardid', ['cardid' => $id]);
-        $card->color = $options->background;
+        $card->color = empty($options->background) ? '#FFFFFF' : strtoupper(clean_param($options->background, PARAM_TEXT));
         $draftitemid = file_get_submitted_draft_itemid('attachments');
         $card->description = file_prepare_draft_area(
             $draftitemid,

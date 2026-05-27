@@ -47,21 +47,21 @@ class edit_column_form extends dynamic_form {
         $mform->addElement('hidden', 'cmid');
         $mform->setType('cmid', PARAM_INT);
 
-        $mform->addElement('text', 'title', get_string('columntitle', 'kanban'), ['size' => '50']);
+        $mform->addElement('text', 'title', get_string('columntitle', 'mod_kanban'), ['size' => '50']);
         $mform->setType('title', PARAM_TEXT);
 
         $userid = $this->optional_param('userid', 0, PARAM_INT);
         $groupid = $this->optional_param('groupid', 0, PARAM_INT);
 
-        $mform->addElement('advcheckbox', 'autoclose', get_string('autoclose', 'kanban'));
+        $mform->addElement('advcheckbox', 'autoclose', get_string('autoclose', 'mod_kanban'));
         $mform->setType('autoclose', PARAM_BOOL);
 
-        $mform->addElement('advcheckbox', 'autohide', get_string('autohide', 'kanban'));
+        $mform->addElement('advcheckbox', 'autohide', get_string('autohide', 'mod_kanban'));
         $mform->setType('autohide', PARAM_BOOL);
 
         $wiparray = [];
-        $wiparray[] = $mform->createElement('advcheckbox', 'wiplimitenable', get_string('wiplimitenable', 'kanban'));
-        $wiparray[] = $mform->createElement('text', 'wiplimit', get_string('wiplimit', 'kanban'), ['size' => '5']);
+        $wiparray[] = $mform->createElement('advcheckbox', 'wiplimitenable', get_string('wiplimitenable', 'mod_kanban'));
+        $wiparray[] = $mform->createElement('text', 'wiplimit', get_string('wiplimit', 'mod_kanban'), ['size' => '4']);
         $mform->addGroup($wiparray, 'wipgroup', '', '', false);
 
         $mform->setType('wiplimit', PARAM_INT);
@@ -70,6 +70,38 @@ class edit_column_form extends dynamic_form {
         $mform->disabledIf('wiplimit', 'wiplimitenable', 'notchecked');
 
         $mform->addElement('html', '<style>
+            #fgroup_id_wipgroup .fgroup,
+            #fgroup_id_wipgroup .felement.fgroup,
+            #fitem_id_wipgroup .fgroup,
+            #fitem_id_wipgroup .felement.fgroup {
+                display: flex;
+                align-items: center;
+                gap: .3rem;
+            }
+            #fitem_id_wipgroup {
+                margin-top: -.34rem;
+                margin-bottom: .12rem;
+            }
+            #fgroup_id_wipgroup .fgroup > span:first-child,
+            #fitem_id_wipgroup .fgroup > span:first-child {
+                display: inline-flex;
+                align-items: center;
+                gap: .52rem;
+                margin-right: .18rem;
+            }
+            #fgroup_id_wipgroup input[name=\"wiplimitenable\"],
+            #fitem_id_wipgroup input[name=\"wiplimitenable\"] {
+                margin-right: 0;
+                position: relative;
+                top: 1px;
+            }
+            #fgroup_id_wipgroup input[name=\"wiplimit\"],
+            #fitem_id_wipgroup input[name=\"wiplimit\"] {
+                margin-left: .52rem;
+                width: 3.8rem;
+                max-width: 3.8rem;
+                padding: .22rem .4rem;
+            }
             #fgroup_id_dotcolorgroup .fgroup,
             #fgroup_id_dotcolorgroup .felement.fgroup,
             #fitem_id_dotcolorgroup .fgroup,
@@ -116,16 +148,16 @@ class edit_column_form extends dynamic_form {
         </style>');
 
         $dotcolors = [
-            '#9AA4B2' => ['label' => get_string('dotcolorgray', 'kanban')],
-            '#3579DC' => ['label' => get_string('dotcolorblue', 'kanban')],
-            '#4DB56A' => ['label' => get_string('dotcolorgreen', 'kanban')],
-            '#7C6ED6' => ['label' => get_string('dotcolorpurple', 'kanban')],
-            '#1D74A6' => ['label' => get_string('dotcolorcyan', 'kanban')],
-            '#009688' => ['label' => get_string('dotcolorteal', 'kanban')],
-            '#C68A2E' => ['label' => get_string('dotcoloramber', 'kanban')],
-            '#B96A55' => ['label' => get_string('dotcolorterracotta', 'kanban')],
-            '#A9597A' => ['label' => get_string('dotcolorrose', 'kanban')],
-            '#7A7A2E' => ['label' => get_string('dotcolorolive', 'kanban')],
+            '#9AA4B2' => ['label' => get_string('dotcolorgray', 'mod_kanban')],
+            '#3579DC' => ['label' => get_string('dotcolorblue', 'mod_kanban')],
+            '#4DB56A' => ['label' => get_string('dotcolorgreen', 'mod_kanban')],
+            '#7C6ED6' => ['label' => get_string('dotcolorpurple', 'mod_kanban')],
+            '#1D74A6' => ['label' => get_string('dotcolorcyan', 'mod_kanban')],
+            '#009688' => ['label' => get_string('dotcolorteal', 'mod_kanban')],
+            '#C68A2E' => ['label' => get_string('dotcoloramber', 'mod_kanban')],
+            '#B96A55' => ['label' => get_string('dotcolorterracotta', 'mod_kanban')],
+            '#A9597A' => ['label' => get_string('dotcolorrose', 'mod_kanban')],
+            '#7A7A2E' => ['label' => get_string('dotcolorolive', 'mod_kanban')],
         ];
         $dotcolorelements = [];
         foreach ($dotcolors as $value => $meta) {
@@ -137,8 +169,8 @@ class edit_column_form extends dynamic_form {
                 'aria-label' => $meta['label'],
             ]);
         }
-        $mform->addGroup($dotcolorelements, 'dotcolorgroup', get_string('dotcolor', 'kanban'), '', false);
-        $mform->addHelpButton('dotcolorgroup', 'dotcolor', 'kanban');
+        $mform->addGroup($dotcolorelements, 'dotcolorgroup', get_string('dotcolor', 'mod_kanban'), '', false);
+        $mform->addHelpButton('dotcolorgroup', 'dotcolor', 'mod_kanban');
         $mform->setType('dotcolor', PARAM_TEXT);
         $mform->setDefault('dotcolor', '#9AA4B2');
     }
@@ -244,7 +276,7 @@ class edit_column_form extends dynamic_form {
         $errors = parent::validation($data, $files);
 
         if (!empty($data['wiplimitenable']) && $data['wiplimit'] <= 0) {
-            $errors['wipgroup'] = get_string('wiplimitgreaterzero', 'kanban');
+            $errors['wipgroup'] = get_string('wiplimitgreaterzero', 'mod_kanban');
         }
 
         return $errors;

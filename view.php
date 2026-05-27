@@ -35,12 +35,36 @@ $boardid = optional_param('boardid', 0, PARAM_INT);
 $requestedgroupid = optional_param('groupid', 0, PARAM_INT);
 $legacygroupid = optional_param('group', 0, PARAM_INT);
 $userid = optional_param('user', 0, PARAM_INT);
+$resetopcache = optional_param('resetopcache', 0, PARAM_BOOL);
 
 [$course, $cm] = get_course_and_cm_from_cmid($id, 'kanban');
 
 require_course_login($course, true, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/kanban:view', $context);
+
+if ($resetopcache && is_siteadmin() && confirm_sesskey()) {
+    require_once($CFG->libdir . '/adminlib.php');
+    if (function_exists('opcache_reset')) {
+        @opcache_reset();
+    }
+    purge_all_caches();
+
+    $redirectparams = ['id' => $id];
+    if (!empty($boardid)) {
+        $redirectparams['boardid'] = $boardid;
+    }
+    if (!empty($requestedgroupid)) {
+        $redirectparams['groupid'] = $requestedgroupid;
+    }
+    if (!empty($legacygroupid)) {
+        $redirectparams['group'] = $legacygroupid;
+    }
+    if (!empty($userid)) {
+        $redirectparams['user'] = $userid;
+    }
+    redirect(new moodle_url('/mod/kanban/view.php', $redirectparams));
+}
 
 $kanban = $DB->get_record('kanban', ['id' => $cm->instance], '*', MUST_EXIST);
 
