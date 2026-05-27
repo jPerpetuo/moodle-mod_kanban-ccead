@@ -19,6 +19,7 @@ namespace mod_kanban\form;
 use context;
 use context_module;
 use core_form\dynamic_form;
+use core_user;
 use mod_kanban\boardmanager;
 use mod_kanban\helper;
 use mod_kanban\constants;
@@ -37,6 +38,7 @@ class edit_card_form extends dynamic_form {
      * Define the form
      */
     public function definition() {
+        global $DB;
         $mform =& $this->_form;
 
         $mform->addElement('hidden', 'id');
@@ -53,6 +55,7 @@ class edit_card_form extends dynamic_form {
 
         $userid = $this->optional_param('userid', 0, PARAM_INT);
         $groupid = $this->optional_param('groupid', 0, PARAM_INT);
+        $cardid = $this->optional_param('id', 0, PARAM_INT);
 
         $context = $this->get_context_for_dynamic_submission();
         if (has_capability('mod/kanban:assignothers', $context)) {
@@ -64,6 +67,23 @@ class edit_card_form extends dynamic_form {
                     continue;
                 }
                 $users[$user->id] = fullname($user);
+            }
+            if (!empty($cardid)) {
+                $assignedusers = $DB->get_fieldset_select(
+                    'kanban_assignee',
+                    'userid',
+                    'kanban_card = :cardid',
+                    ['cardid' => $cardid]
+                );
+                foreach ($assignedusers as $assigneduserid) {
+                    $assigneduserid = (int) $assigneduserid;
+                    if (isset($users[$assigneduserid])) {
+                        continue;
+                    }
+                    if ($user = core_user::get_user($assigneduserid, '*', MUST_EXIST, false)) {
+                        $users[$assigneduserid] = fullname($user);
+                    }
+                }
             }
             $mform->addElement(
                 'autocomplete',
