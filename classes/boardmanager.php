@@ -1437,16 +1437,14 @@ class boardmanager {
         }
         $allowedcardcolors = [
             '#FFFFFF',
-            '#9AA4B2',
-            '#3579DC',
-            '#4DB56A',
-            '#7C6ED6',
-            '#1D74A6',
-            '#009688',
-            '#C68A2E',
-            '#B96A55',
-            '#A9597A',
-            '#7A7A2E',
+            '#F6EEB9',
+            '#F8D0AF',
+            '#F7BBC0',
+            '#EFC2E9',
+            '#D5C8F6',
+            '#D2E3FA',
+            '#A9E5E1',
+            '#E5F2BF',
         ];
         $selectedbackground = '';
         if (!empty($data['currentcolor'])) {

@@ -182,7 +182,6 @@ export default class extends KanbanComponent {
             'click',
             this._showDetailsModal
         );
-
         this.draggable = false;
         this.dragdrop = new DragDrop(this);
         this.checkEditing(state);
@@ -543,11 +542,28 @@ export default class extends KanbanComponent {
         this.getElement(selectors.INPLACEEDITABLE).querySelector('a').innerHTML = element.title;
         this.getElement(selectors.DISCUSSIONMODALTITLE).textContent = incomingtitleplain;
     }
+        const hasstyleupdate = element.options !== undefined || element.background !== undefined;
+        const currenthasdescription = this.getElement().classList.contains('mod_kanban_hasdescription');
+        const currenthasattachment = this.getElement().classList.contains('mod_kanban_hasattachment');
+        const currenthasdiscussion = this.getElement().classList.contains('mod_kanban_hasdiscussion');
+
         if (element.hasdescription !== undefined) {
-            this.toggleClass(element.hasdescription, 'mod_kanban_hasdescription');
+            const nexthasdescription = Boolean(element.hasdescription);
+            const preservetransientdescriptiondrop = hasstyleupdate &&
+                currenthasdescription &&
+                !nexthasdescription;
+            if (!preservetransientdescriptiondrop) {
+                this.toggleClass(nexthasdescription, 'mod_kanban_hasdescription');
+            }
         }
         if (element.hasattachment !== undefined) {
-            this.toggleClass(element.hasattachment, 'mod_kanban_hasattachment');
+            const nexthasattachment = Boolean(element.hasattachment);
+            const preservetransientattachmentdrop = hasstyleupdate &&
+                currenthasattachment &&
+                !nexthasattachment;
+            if (!preservetransientattachmentdrop) {
+                this.toggleClass(nexthasattachment, 'mod_kanban_hasattachment');
+            }
         }
         // Update due date.
         if (element.duedate !== undefined) {
@@ -555,7 +571,13 @@ export default class extends KanbanComponent {
             this._dueDateFormat();
         }
         if (element.discussion !== undefined) {
-            this.toggleClass(element.discussion, 'mod_kanban_hasdiscussion');
+            const nexthasdiscussion = Boolean(element.discussion);
+            const preservetransientdiscussiondrop = hasstyleupdate &&
+                currenthasdiscussion &&
+                !nexthasdiscussion;
+            if (!preservetransientdiscussiondrop) {
+                this.toggleClass(nexthasdiscussion, 'mod_kanban_hasdiscussion');
+            }
         }
         // Only option for now is background color.
         if (element.options !== undefined) {

@@ -177,17 +177,15 @@ class edit_card_form extends dynamic_form {
         </style>');
 
         $cardcolors = [
-            '#FFFFFF' => ['label' => get_string('dotcolorwhite', 'mod_kanban')],
-            '#9AA4B2' => ['label' => get_string('dotcolorgray', 'mod_kanban')],
-            '#3579DC' => ['label' => get_string('dotcolorblue', 'mod_kanban')],
-            '#4DB56A' => ['label' => get_string('dotcolorgreen', 'mod_kanban')],
-            '#7C6ED6' => ['label' => get_string('dotcolorpurple', 'mod_kanban')],
-            '#1D74A6' => ['label' => get_string('dotcolorcyan', 'mod_kanban')],
-            '#009688' => ['label' => get_string('dotcolorteal', 'mod_kanban')],
-            '#C68A2E' => ['label' => get_string('dotcoloramber', 'mod_kanban')],
-            '#B96A55' => ['label' => get_string('dotcolorterracotta', 'mod_kanban')],
-            '#A9597A' => ['label' => get_string('dotcolorrose', 'mod_kanban')],
-            '#7A7A2E' => ['label' => get_string('dotcolorolive', 'mod_kanban')],
+            '#FFFFFF' => ['label' => get_string('cardcolorwhite', 'mod_kanban')],
+            '#F6EEB9' => ['label' => get_string('cardcolorlightyellow', 'mod_kanban')],
+            '#F8D0AF' => ['label' => get_string('cardcolorsoftorange', 'mod_kanban')],
+            '#F7BBC0' => ['label' => get_string('cardcolorcoral', 'mod_kanban')],
+            '#EFC2E9' => ['label' => get_string('cardcolorpink', 'mod_kanban')],
+            '#D5C8F6' => ['label' => get_string('cardcolorlavender', 'mod_kanban')],
+            '#D2E3FA' => ['label' => get_string('cardcolorlightblue', 'mod_kanban')],
+            '#A9E5E1' => ['label' => get_string('cardcolorturquoise', 'mod_kanban')],
+            '#E5F2BF' => ['label' => get_string('cardcolorlightlime', 'mod_kanban')],
         ];
         $colorelements = [];
         foreach ($cardcolors as $value => $meta) {
@@ -248,16 +246,14 @@ class edit_card_form extends dynamic_form {
 
         $allowedcolors = [
             '#FFFFFF',
-            '#9AA4B2',
-            '#3579DC',
-            '#4DB56A',
-            '#7C6ED6',
-            '#1D74A6',
-            '#009688',
-            '#C68A2E',
-            '#B96A55',
-            '#A9597A',
-            '#7A7A2E',
+            '#F6EEB9',
+            '#F8D0AF',
+            '#F7BBC0',
+            '#EFC2E9',
+            '#D5C8F6',
+            '#D2E3FA',
+            '#A9E5E1',
+            '#E5F2BF',
         ];
 
         $selectedcolor = '';

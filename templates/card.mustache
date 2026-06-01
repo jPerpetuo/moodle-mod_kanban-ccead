@@ -381,5 +381,38 @@ require([], function() {
         card.__modKanbanAssigneeSummaryObserver = observer;
     }
 });
+
+require([], function() {
+    const card = document.getElementById('mod_kanban_card-{{id}}');
+    if (!card) {
+        return;
+    }
+
+    const actionmenu = card.querySelector('.mod_kanban_action_menu');
+    const trigger = actionmenu ? actionmenu.querySelector('.mod_kanban_action_menu_trigger') : null;
+    const menu = actionmenu ? actionmenu.querySelector('.dropdown-menu') : null;
+
+    if (!actionmenu || !trigger || !menu) {
+        return;
+    }
+
+    const updateMenuDirection = function() {
+        actionmenu.classList.remove('dropup');
+
+        const triggerrect = trigger.getBoundingClientRect();
+        const viewportheight = window.innerHeight || document.documentElement.clientHeight || 0;
+        const availablebelow = viewportheight - triggerrect.bottom;
+        const availableabove = triggerrect.top;
+        const itemcount = menu.querySelectorAll('.dropdown-item').length;
+        const estimatedmenuheight = Math.max(menu.scrollHeight || 0, itemcount * 38 + 16);
+        const usedropup = availablebelow < estimatedmenuheight && availableabove > availablebelow;
+
+        actionmenu.classList.toggle('dropup', usedropup);
+    };
+
+    trigger.addEventListener('click', function() {
+        window.setTimeout(updateMenuDirection, 0);
+    });
+});
 {{/js}}
 

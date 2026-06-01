@@ -257,6 +257,12 @@
     content: none;
 }
 
+.dropup .mod_kanban_action_menu_trigger.dropdown-toggle::before,
+.dropup .mod_kanban_action_menu_trigger.dropdown-toggle::after {
+    content: none;
+    border: 0;
+}
+
 .mod_kanban_duedate {
     border-radius: 5px;
     width: fit-content;
