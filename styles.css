@@ -1332,6 +1332,7 @@ a.mod_kanban_attachment_item {
 
 .mod_kanban_card .mod_kanban_action_menu {
     position: static;
+    z-index: 20;
 }
 
 .mod_kanban_card .mod_kanban_action_menu_trigger {
@@ -1359,6 +1360,7 @@ a.mod_kanban_attachment_item {
     flex-direction: column;
     margin-top: auto;
     padding-top: 1.1rem;
+    overflow: visible;
 }
 
 .mod_kanban_card_assignees_row,

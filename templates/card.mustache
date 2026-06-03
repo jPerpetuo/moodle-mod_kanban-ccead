@@ -383,36 +383,149 @@ require([], function() {
 });
 
 require([], function() {
-    const card = document.getElementById('mod_kanban_card-{{id}}');
-    if (!card) {
+    if (window.__modKanbanCardMenuControllerInitialized) {
         return;
     }
+    window.__modKanbanCardMenuControllerInitialized = true;
 
-    const actionmenu = card.querySelector('.mod_kanban_action_menu');
-    const trigger = actionmenu ? actionmenu.querySelector('.mod_kanban_action_menu_trigger') : null;
-    const menu = actionmenu ? actionmenu.querySelector('.dropdown-menu') : null;
-
-    if (!actionmenu || !trigger || !menu) {
-        return;
-    }
-
-    const updateMenuDirection = function() {
-        actionmenu.classList.remove('dropup');
-
-        const triggerrect = trigger.getBoundingClientRect();
-        const viewportheight = window.innerHeight || document.documentElement.clientHeight || 0;
-        const availablebelow = viewportheight - triggerrect.bottom;
-        const availableabove = triggerrect.top;
-        const itemcount = menu.querySelectorAll('.dropdown-item').length;
-        const estimatedmenuheight = Math.max(menu.scrollHeight || 0, itemcount * 38 + 16);
-        const usedropup = availablebelow < estimatedmenuheight && availableabove > availablebelow;
-
-        actionmenu.classList.toggle('dropup', usedropup);
+    const state = {
+        openmenu: null,
+        opentrigger: null,
+        openactionmenu: null,
+        listenersattached: false,
     };
 
-    trigger.addEventListener('click', function() {
-        window.setTimeout(updateMenuDirection, 0);
-    });
+    const closeMenu = function() {
+        if (!state.openmenu || !state.opentrigger || !state.openactionmenu) {
+            return;
+        }
+        state.openmenu.classList.remove('show');
+        state.openmenu.style.position = '';
+        state.openmenu.style.top = '';
+        state.openmenu.style.left = '';
+        state.openmenu.style.right = '';
+        state.openmenu.style.zIndex = '';
+        state.openmenu.style.visibility = '';
+        state.openmenu.style.width = '';
+        state.openmenu.style.minWidth = '';
+        state.openmenu.style.display = '';
+        state.openmenu.style.transform = '';
+        state.openmenu.style.marginTop = '';
+        state.openactionmenu.classList.remove('mod_kanban_action_menu_open');
+        state.opentrigger.setAttribute('aria-expanded', 'false');
+        state.openmenu = null;
+        state.opentrigger = null;
+        state.openactionmenu = null;
+    };
+
+    const placeMenu = function(trigger, actionmenu, menu) {
+        const triggerrect = trigger.getBoundingClientRect();
+        const viewportwidth = window.innerWidth || document.documentElement.clientWidth || 0;
+        const viewportheight = window.innerHeight || document.documentElement.clientHeight || 0;
+
+        menu.classList.add('show');
+        menu.style.position = 'fixed';
+        menu.style.zIndex = '2000';
+        menu.style.visibility = 'hidden';
+        menu.style.display = 'block';
+        menu.style.left = '0px';
+        menu.style.top = '0px';
+        menu.style.right = 'auto';
+        menu.style.transform = 'none';
+
+        const measured = menu.getBoundingClientRect();
+        const menuwidth = measured.width || 280;
+        const menuheight = measured.height || (menu.querySelectorAll('.dropdown-item').length * 38 + 16);
+
+        let left = triggerrect.right - menuwidth;
+        left = Math.max(8, Math.min(left, viewportwidth - menuwidth - 8));
+
+        let top = triggerrect.bottom + 4;
+        const canopenbelow = top + menuheight <= viewportheight - 8;
+        const canopenabove = triggerrect.top - menuheight - 4 >= 8;
+        if (!canopenbelow && canopenabove) {
+            top = triggerrect.top - menuheight - 4;
+        }
+
+        menu.style.left = `${left}px`;
+        menu.style.top = `${top}px`;
+        menu.style.visibility = 'visible';
+        actionmenu.classList.add('mod_kanban_action_menu_open');
+        trigger.setAttribute('aria-expanded', 'true');
+        state.openmenu = menu;
+        state.opentrigger = trigger;
+        state.openactionmenu = actionmenu;
+    };
+
+    const toggleMenu = function(trigger) {
+        const actionmenu = trigger.closest('.mod_kanban_action_menu');
+        const menu = actionmenu ? actionmenu.querySelector('.dropdown-menu') : null;
+        if (!actionmenu || !menu) {
+            return;
+        }
+
+        if (state.opentrigger === trigger) {
+            closeMenu();
+            return;
+        }
+
+        closeMenu();
+        placeMenu(trigger, actionmenu, menu);
+    };
+
+    const handleDocumentClick = function(event) {
+        const trigger = event.target.closest('.mod_kanban_card .mod_kanban_action_menu_trigger');
+        if (trigger) {
+            event.preventDefault();
+            event.stopPropagation();
+            toggleMenu(trigger);
+            return;
+        }
+
+        if (state.openmenu && state.openmenu.contains(event.target) && event.target.closest('.dropdown-item')) {
+            window.setTimeout(function() {
+                closeMenu();
+            }, 0);
+            return;
+        }
+
+        if (state.openmenu && !state.openmenu.contains(event.target) && !state.opentrigger?.contains(event.target)) {
+            closeMenu();
+        }
+    };
+
+    const handleDocumentKeydown = function(event) {
+        if (event.key === 'Escape' || event.key === 'Esc') {
+            closeMenu();
+        }
+    };
+
+    const handleWindowChange = function() {
+        closeMenu();
+    };
+
+    document.addEventListener('click', handleDocumentClick, true);
+    document.addEventListener('keydown', handleDocumentKeydown, true);
+    document.addEventListener('mousedown', function(event) {
+        if (!state.openmenu) {
+            return;
+        }
+        if (state.openmenu.contains(event.target) || state.opentrigger?.contains(event.target)) {
+            return;
+        }
+        closeMenu();
+    }, true);
+    document.addEventListener('touchstart', function(event) {
+        if (!state.openmenu) {
+            return;
+        }
+        if (state.openmenu.contains(event.target) || state.opentrigger?.contains(event.target)) {
+            return;
+        }
+        closeMenu();
+    }, true);
+    window.addEventListener('resize', handleWindowChange, true);
+    window.addEventListener('scroll', handleWindowChange, true);
 });
 {{/js}}
 
