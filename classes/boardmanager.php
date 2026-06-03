@@ -941,14 +941,25 @@ class boardmanager {
 
         $data['number'] = self::get_next_card_number();
 
+        $column = $DB->get_record('kanban_column', ['id' => $columnid]);
+        $iscompletioncolumn = false;
+        if ($column) {
+            $iscompletioncolumn = $this->is_completion_column($column);
+        }
+        if ($iscompletioncolumn) {
+            $data['completed'] = 1;
+        }
+
         $data['id'] = $DB->insert_record('kanban_card', $data);
         $data['assignees'] = [];
+        if ($iscompletioncolumn) {
+            $data['completedat'] = $data['timemodified'];
+        }
         // Sanitize title to be extra safe.
         $data['title'] = clean_param($data['title'], PARAM_TEXT);
 
         try {
             $transaction = $DB->start_delegated_transaction();
-            $column = $DB->get_record('kanban_column', ['id' => $columnid]);
 
             $update = [
                 'id' => $columnid,
@@ -1024,7 +1035,6 @@ class boardmanager {
         try {
             $transaction = $DB->start_delegated_transaction();
             $sourcecolumn = $DB->get_record('kanban_column', ['id' => $card->kanban_column]);
-            $sourceoptions = json_decode($sourcecolumn->options ?? '{}');
 
             if ($card->kanban_column == $columnid) {
                 $update = [
@@ -1037,8 +1047,9 @@ class boardmanager {
                 $this->formatter->put('columns', $update);
             } else {
                 $targetcolumn = $DB->get_record('kanban_column', ['id' => $columnid]);
+                $targetiscompletion = $this->is_completion_column($targetcolumn);
 
-                if (!empty($targetcolumn->locked)) {
+                if (!empty($targetcolumn->locked) && !$targetiscompletion) {
                     // Force the frontend to keep the locked column state in sync.
                     $this->formatter->put('columns', [
                         'id' => $targetcolumn->id,
@@ -1055,11 +1066,13 @@ class boardmanager {
                     self::check_wiplimit($columnid, $cardid, $wiplimit);
                 }
 
+                $sourceiscompletion = $this->is_completion_column($sourcecolumn);
+
                 // Card needs to be processed first, because column sorting in frontend will only
                 // work if card is already moved in the right position.
                 $updatecard = ['id' => $cardid, 'kanban_column' => $columnid, 'timemodified' => time()];
-                // If target column has autoclose option set, update card to be completed.
-                if (!empty($options->autoclose)) {
+                // If target column is the completion column, update card to be completed.
+                if ($targetiscompletion) {
                     if ($card->completed) {
                         self::set_card_complete($cardid, 1);
                     }
@@ -1096,10 +1109,10 @@ class boardmanager {
                 $data['columnname'] = clean_param($targetcolumn->title, PARAM_TEXT);
                 $assignees = $this->get_card_assignees($cardid);
                 helper::send_notification($this->cminfo, 'moved', $assignees, (object) $data);
-                if (!empty($options->autoclose) && $card->completed == 0) {
+                if ($targetiscompletion && $card->completed == 0) {
                     self::set_card_complete($cardid, 1);
-                } elseif (!empty($sourceoptions->autoclose) && empty($options->autoclose) && !empty($card->completed)) {
-                    // Reopen card when it leaves an autoclose (e.g. "Concluido") column.
+                } elseif ($sourceiscompletion && !$targetiscompletion && !empty($card->completed)) {
+                    // Reopen card when it leaves the completion column.
                     self::set_card_complete($cardid, 0);
                 }
                 $this->write_history(
@@ -1942,6 +1955,16 @@ class boardmanager {
      * @return int
      */
     public function get_first_autoclose_column(int $boardid = 0): int {
+        return $this->get_first_completion_column($boardid);
+    }
+
+    /**
+     * Returns the first completion column of a board, 0 if none is found.
+     *
+     * @param int $boardid Id of the board, defaults to 0 (current board)
+     * @return int
+     */
+    public function get_first_completion_column(int $boardid = 0): int {
         global $DB;
 
         if (empty($boardid) || $this->board->id == $boardid) {
@@ -1955,23 +1978,47 @@ class boardmanager {
         }
 
         $columnids = explode(',', $sequence);
+        $fallback = 0;
+        $donevalue = clean_param(get_string('done', 'kanban'), PARAM_TEXT);
         foreach ($columnids as $columnid) {
             if (empty($columnid)) {
                 continue;
             }
 
             $column = $this->get_column((int) $columnid);
+            $fallback = (int) $columnid;
+            if ($this->is_completion_column($column)) {
+                return (int) $columnid;
+            }
+
+            $columntitle = clean_param(html_entity_decode($column->title ?? '', ENT_COMPAT, 'UTF-8'), PARAM_TEXT);
+            if (!empty($donevalue) && $columntitle === $donevalue) {
+                return (int) $columnid;
+            }
+
             if (!empty($column->locked)) {
                 continue;
             }
-
-            $options = json_decode($column->options ?? '');
-            if (!empty($options->autoclose)) {
-                return (int) $columnid;
-            }
         }
 
-        return 0;
+        return $fallback;
+    }
+
+    /**
+     * Checks whether the given column should behave as the completion column.
+     *
+     * @param stdClass $column Column record
+     * @return bool
+     */
+    private function is_completion_column(stdClass $column): bool {
+        $options = json_decode($column->options ?? '{}');
+        if (!empty($options->autoclose)) {
+            return true;
+        }
+
+        $donevalue = clean_param(get_string('done', 'kanban'), PARAM_TEXT);
+        $columntitle = clean_param(html_entity_decode($column->title ?? '', ENT_COMPAT, 'UTF-8'), PARAM_TEXT);
+        return !empty($donevalue) && $columntitle === $donevalue;
     }
 
     /**

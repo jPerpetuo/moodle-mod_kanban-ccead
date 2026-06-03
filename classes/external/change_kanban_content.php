@@ -650,7 +650,7 @@ class change_kanban_content extends external_api {
 
         if (!empty($state)) {
             $card = $boardmanager->get_card($cardid);
-            $completedcolumnid = $boardmanager->get_first_autoclose_column($card->kanban_board);
+            $completedcolumnid = $boardmanager->get_first_completion_column($card->kanban_board);
 
             if (!empty($completedcolumnid) && $completedcolumnid !== (int) $card->kanban_column) {
                 $aftercard = $boardmanager->get_last_card_in_column($completedcolumnid);
