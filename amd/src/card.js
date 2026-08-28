@@ -445,6 +445,8 @@ export default class extends KanbanComponent {
      * Called when card is updated.
      * @param {*} param0
      */
+    // This method coordinates several independent card updates from one event.
+    // eslint-disable-next-line complexity
     async _cardUpdated({element}) {
         if (this.getElement().querySelector('.mod_kanban_card_title_editor')) {
             return;
