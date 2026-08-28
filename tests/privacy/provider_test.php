@@ -251,12 +251,32 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
      * Users in context must include authors, assignees, commenters, and history users.
      */
     public function test_get_users_in_context(): void {
+        global $DB;
+
+        $this->assertTrue($DB->record_exists('kanban_board', [
+            'id' => $this->personalboardid,
+            'userid' => $this->targetuser->id,
+        ]));
+        $this->assertTrue($DB->record_exists('kanban_card', [
+            'id' => $this->sharedcard->id,
+            'createdby' => $this->targetuser->id,
+        ]));
+        $this->assertTrue($DB->record_exists('kanban_assignee', [
+            'kanban_card' => $this->sharedcard->id,
+            'userid' => $this->targetuser->id,
+        ]));
+        $this->assertTrue($DB->record_exists('kanban_discussion_comment', [
+            'kanban_card' => $this->sharedcard->id,
+            'userid' => $this->targetuser->id,
+        ]));
+
         $userlist = new userlist($this->context, 'mod_kanban');
         provider::get_users_in_context($userlist);
         $userids = $userlist->get_userids();
+        $message = 'Discovered user IDs: ' . implode(', ', $userids);
 
-        $this->assertContains($this->targetuser->id, $userids);
-        $this->assertContains($this->otheruser->id, $userids);
+        $this->assertContains($this->targetuser->id, $userids, $message);
+        $this->assertContains($this->otheruser->id, $userids, $message);
         $this->assertNotContains(0, $userids);
     }
 
