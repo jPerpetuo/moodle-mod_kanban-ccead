@@ -31,28 +31,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - php: '8.3'
-            moodle-branch: 'main'
+          - php: '8.1'
+            moodle-branch: 'MOODLE_401_STABLE'
             database: 'mariadb'
           - php: '8.3'
-            moodle-branch: 'main'
-            database: 'pgsql'
-          - php: '8.3'
-            moodle-branch: 'MOODLE_405_STABLE'
-            database: 'mariadb'
-          - php: '8.3'
-            moodle-branch: 'MOODLE_405_STABLE'
-            database: 'pgsql'
-          - php: '8.3'
-            moodle-branch: 'MOODLE_404_STABLE'
-            database: 'mariadb'
-          - php: '8.3'
-            moodle-branch: 'MOODLE_404_STABLE'
+            moodle-branch: 'MOODLE_501_STABLE'
             database: 'pgsql'
 
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: plugin
 
@@ -80,6 +68,9 @@ jobs:
         env:
           DB: ${{ matrix.database }}
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
+
+      - name: Privacy provider PHPUnit tests
+        run: moodle-plugin-ci phpunit --testsuite mod_kanban_testsuite --filter provider_test
 
       - name: PHP Lint
         run: moodle-plugin-ci phplint
