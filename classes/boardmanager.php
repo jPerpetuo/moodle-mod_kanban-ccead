@@ -196,6 +196,7 @@ class boardmanager {
      *
      * @param int $targetboardid Board id to replace.
      * @param int $templateid Template board id, defaults to the latest template.
+     * @param bool $confirmoverwrite Whether the caller confirmed that cards may be removed.
      * @return void
      * @throws moodle_exception
      */
@@ -254,6 +255,7 @@ class boardmanager {
      * Apply the current template to all configured group boards.
      *
      * @param int $templateid Template board id, defaults to the latest template.
+     * @param bool $confirmoverwrite Whether the caller confirmed that cards may be removed.
      * @param bool $confirmoverwrite Whether the caller confirmed that cards may be removed.
      * @return void
      * @throws moodle_exception
