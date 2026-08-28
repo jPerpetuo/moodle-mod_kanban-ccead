@@ -183,7 +183,7 @@ class boardmanager {
      */
     public function create_template(): int {
         $this->delete_instance_templates();
-        $id = $this->create_board_from_template($this->board->id, ['template' => 1]);
+        $id = $this->create_structure_template($this->board->id);
         $this->formatter->put('common', ['template' => $id]);
         return $id;
     }
@@ -199,7 +199,8 @@ class boardmanager {
      * @return void
      * @throws moodle_exception
      */
-    public function apply_template_to_board(int $targetboardid, int $templateid = 0): void {
+    public function apply_template_to_board(int $targetboardid, int $templateid = 0,
+            bool $confirmoverwrite = false): void {
         global $DB;
 
         if (empty($templateid)) {
@@ -211,46 +212,26 @@ class boardmanager {
 
         $template = helper::get_cached_board($templateid);
         $targetboard = helper::get_cached_board($targetboardid);
-
         if ((int)$template->id === (int)$targetboard->id) {
             return;
         }
-
-        if ($template->kanban_instance == 0) {
-            $context = context_system::instance();
-        } else {
-            $context = context_module::instance($this->cmid, 'kanban');
+        if (!$confirmoverwrite && $this->board_has_cards($targetboardid)) {
+            throw new moodle_exception('templateoverwriteconfirmationrequired', 'mod_kanban');
         }
 
         $this->clear_board_contents($targetboardid);
-
         $columns = $DB->get_records('kanban_column', ['kanban_board' => $template->id]);
-        $cards = $DB->get_records('kanban_card', ['kanban_board' => $template->id]);
         $newcolumns = [];
-        $newcards = [];
         $now = time();
-
         foreach ($columns as $column) {
             $newcolumns[$column->id] = clone $column;
             $newcolumns[$column->id]->title = clean_param($column->title, PARAM_TEXT);
             $newcolumns[$column->id]->kanban_board = $targetboardid;
             $newcolumns[$column->id]->timecreated = $now;
             $newcolumns[$column->id]->timemodified = $now;
+            $newcolumns[$column->id]->sequence = '';
             unset($newcolumns[$column->id]->id);
             $newcolumns[$column->id]->id = $DB->insert_record('kanban_column', $newcolumns[$column->id]);
-        }
-
-        foreach ($cards as $card) {
-            $newcards[$card->id] = clone $card;
-            $newcards[$card->id]->kanban_board = $targetboardid;
-            $newcards[$card->id]->kanban_column = $newcolumns[$card->kanban_column]->id;
-            $newcards[$card->id]->timecreated = $now;
-            $newcards[$card->id]->timemodified = $now;
-            $newcards[$card->id]->originalid = $card->id;
-            unset($newcards[$card->id]->id);
-            unset($newcards[$card->id]->createdby);
-            $newcards[$card->id]->id = $DB->insert_record('kanban_card', $newcards[$card->id]);
-            $this->copy_attachment_files($context->id, $card->id, $newcards[$card->id]->id);
         }
 
         $boardupdate = [
@@ -263,12 +244,6 @@ class boardmanager {
         helper::update_cached_board($targetboardid);
         helper::update_cached_timestamp($targetboardid, constants::MOD_KANBAN_COLUMN, $now);
         helper::update_cached_timestamp($targetboardid, constants::MOD_KANBAN_CARD, $now);
-
-        foreach ($newcolumns as $newcolumn) {
-            $newcolumn->sequence = helper::sequence_replace($newcolumn->sequence, $newcards);
-            $DB->update_record('kanban_column', $newcolumn);
-        }
-
         $this->load_board($targetboardid);
     }
 
@@ -276,28 +251,91 @@ class boardmanager {
      * Apply the current template to all configured group boards.
      *
      * @param int $templateid Template board id, defaults to the latest template.
+     * @param bool $confirmoverwrite Whether the caller confirmed that cards may be removed.
      * @return void
      * @throws moodle_exception
      */
-    public function apply_template_to_all_group_boards(int $templateid = 0): void {
+    public function apply_template_to_all_group_boards(int $templateid = 0, bool $confirmoverwrite = false): void {
+        global $DB;
+
         if (empty($templateid)) {
             $templateid = $this->get_template_board_id();
         }
         if (empty($templateid)) {
             throw new moodle_exception('notemplateavailable', 'mod_kanban');
         }
-
         $groups = $this->get_available_board_groups();
         if (empty($groups)) {
             throw new moodle_exception('nogroupavailable', 'mod_kanban');
         }
-
+        foreach ($groups as $group) {
+            $board = $DB->get_record('kanban_board', [
+                'kanban_instance' => $this->kanban->id,
+                'userid' => 0,
+                'groupid' => (int)$group->id,
+                'template' => 0,
+            ]);
+            if (!$confirmoverwrite && $board && $this->board_has_cards((int)$board->id)) {
+                throw new moodle_exception('templateoverwriteconfirmationrequired', 'mod_kanban');
+            }
+        }
         foreach ($groups as $group) {
             $boardid = $this->get_or_create_board(0, (int)$group->id);
-            $this->apply_template_to_board($boardid, $templateid);
+            $this->apply_template_to_board($boardid, $templateid, true);
         }
     }
 
+    /**
+     * Create a template containing only the structural configuration of a board.
+     *
+     * @param int $sourceboardid Board id to use as the structural source.
+     * @return int Id of the new template board.
+     */
+    private function create_structure_template(int $sourceboardid): int {
+        global $DB;
+
+        $sourceboard = helper::get_cached_board($sourceboardid);
+        $now = time();
+        $template = (array)$sourceboard;
+        unset($template['id']);
+        $template['kanban_instance'] = $this->kanban->id;
+        $template['sequence'] = '';
+        $template['userid'] = 0;
+        $template['groupid'] = 0;
+        $template['template'] = 1;
+        $template['timecreated'] = $now;
+        $template['timemodified'] = $now;
+        $templateid = $DB->insert_record('kanban_board', $template);
+        $columns = $DB->get_records('kanban_column', ['kanban_board' => $sourceboardid]);
+        $newcolumns = [];
+        foreach ($columns as $column) {
+            $newcolumns[$column->id] = clone $column;
+            $newcolumns[$column->id]->title = clean_param($column->title, PARAM_TEXT);
+            $newcolumns[$column->id]->kanban_board = $templateid;
+            $newcolumns[$column->id]->sequence = '';
+            $newcolumns[$column->id]->timecreated = $now;
+            $newcolumns[$column->id]->timemodified = $now;
+            unset($newcolumns[$column->id]->id);
+            $newcolumns[$column->id]->id = $DB->insert_record('kanban_column', $newcolumns[$column->id]);
+        }
+        $DB->update_record('kanban_board', [
+            'id' => $templateid,
+            'sequence' => helper::sequence_replace($sourceboard->sequence, $newcolumns),
+        ]);
+        helper::update_cached_board($templateid);
+        return $templateid;
+    }
+
+    /**
+     * Return whether a board has cards that would be removed by applying a template.
+     *
+     * @param int $boardid Board id.
+     * @return bool
+     */
+    private function board_has_cards(int $boardid): bool {
+        global $DB;
+        return $DB->record_exists('kanban_card', ['kanban_board' => $boardid]);
+    }
     /**
      * Creates a board for the whole course.
      *
@@ -363,7 +401,7 @@ class boardmanager {
         }
         $groupids = preg_split('/[;,]/', $serialized, -1, PREG_SPLIT_NO_EMPTY);
         $groupids = array_map('intval', $groupids);
-        $groupids = array_filter($groupids, function(int $groupid): bool {
+        $groupids = array_filter($groupids, function (int $groupid): bool {
             return $groupid > 0;
         });
         return array_values(array_unique($groupids));
@@ -414,7 +452,7 @@ class boardmanager {
             ];
         }
 
-        usort($items, function(array $a, array $b): int {
+        usort($items, function (array $a, array $b): int {
             return strnatcasecmp($a['label'], $b['label']);
         });
 
@@ -533,19 +571,27 @@ class boardmanager {
     /**
      * Return the groups that should be available for group boards.
      *
-     * Prefer the groups that Moodle exposes for the activity. If the activity
-     * group mode is disabled and Moodle returns none, fall back to all course
-     * groups so the kanban group-board mode still has usable targets.
+     * Users with permission to view or edit all boards must see every group
+     * configured for this activity. The activity grouping is still respected,
+     * so this does not expose groups outside the module's intended scope.
      *
      * @return array<int, stdClass>
      */
     public function get_available_board_groups(): array {
         $groups = [];
-        if (!empty($this->cminfo)) {
+        $context = context_module::instance($this->cmid);
+        $canaccessotherboards = has_capability('mod/kanban:viewallboards', $context) ||
+            has_capability('mod/kanban:editallboards', $context);
+
+        if ($canaccessotherboards && !empty($this->course->id)) {
+            $groupingid = (int)($this->cminfo->groupingid ?? 0);
+            $groups = groups_get_all_groups((int)$this->course->id, 0, $groupingid, 'g.id, g.name');
+        } else if (!empty($this->cminfo)) {
             $groups = groups_get_activity_allowed_groups($this->cminfo);
         }
         if (empty($groups) && !empty($this->course->id)) {
-            $groups = groups_get_all_groups((int)$this->course->id, 0, 0, 'g.id, g.name');
+            $groupingid = (int)($this->cminfo->groupingid ?? 0);
+            $groups = groups_get_all_groups((int)$this->course->id, 0, $groupingid, 'g.id, g.name');
         }
         $configuredgroupids = $this->get_configured_board_group_ids();
         if (!empty($configuredgroupids) && !empty($groups)) {
@@ -1111,7 +1157,7 @@ class boardmanager {
                 helper::send_notification($this->cminfo, 'moved', $assignees, (object) $data);
                 if ($targetiscompletion && $card->completed == 0) {
                     self::set_card_complete($cardid, 1);
-                } elseif ($sourceiscompletion && !$targetiscompletion && !empty($card->completed)) {
+                } else if ($sourceiscompletion && !$targetiscompletion && !empty($card->completed)) {
                     // Reopen card when it leaves the completion column.
                     self::set_card_complete($cardid, 0);
                 }

@@ -82,10 +82,10 @@ class mod_kanban_mod_form extends moodleform_mod {
         $mform->setDefault('history', 1);
 
         $selectedgroupids = $this->get_initial_board_group_ids($groups);
-        $availablegroups = array_filter($groups, function($group) use ($selectedgroupids) {
+        $availablegroups = array_filter($groups, function ($group) use ($selectedgroupids) {
             return !in_array((int)$group->id, $selectedgroupids, true);
         });
-        $selectedgroups = array_filter($groups, function($group) use ($selectedgroupids) {
+        $selectedgroups = array_filter($groups, function ($group) use ($selectedgroupids) {
             return in_array((int)$group->id, $selectedgroupids, true);
         });
         $serializedselectedgroups = implode(',', $selectedgroupids);
@@ -106,13 +106,10 @@ class mod_kanban_mod_form extends moodleform_mod {
                             <div class="tablecontainer">
                                 <table class="table-reboot" style="width: 100%; max-width: 64rem;">
                                     <tr class="row">
-                                        <th class="col-lg-5">' . get_string('boardgroupsavailable', 'kanban') . '</th>
-                                        <th class="col-lg-2"></th>
-                                        <th class="col-lg-5">' . get_string('boardgroupsselected', 'kanban') . '</th>
-                                    </tr>
-                                    <tr class="row">
                                         <td style="vertical-align: top" class="col-5">
-                                            <select class="col-12" id="availableboardgroups" name="availableboardgroups[]" multiple size="10" style="width: 100%; min-width: 20rem;" ondblclick="' .
+                                            <select class="col-12" id="availableboardgroups" ' .
+                                                'name="availableboardgroups[]" multiple size="10" ' .
+                                                'style="width: 100%; min-width: 20rem;" ondblclick="' .
                                                 s($moveavailabletoselected) . '">');
             foreach ($availablegroups as $group) {
                 $mform->addElement('html', '<option value="' . (int)$group->id . '">' .
@@ -122,17 +119,21 @@ class mod_kanban_mod_form extends moodleform_mod {
                                             </select>
                                         </td>
                                         <td class="col-2">
-                                            <button id="addBoardGroupButton" type="button" class="btn btn-secondary mt-1" onclick="' .
+                                            <button id="addBoardGroupButton" type="button" class="btn btn-secondary mt-1' .
+                                                '" onclick="' .
                                                 s($moveavailabletoselected) . '">' .
                                                 get_string('boardgroupsadd', 'kanban') . '</button>
                                             <div>
-                                                <button id="removeBoardGroupButton" type="button" class="btn btn-secondary mt-1" onclick="' .
+                                                <button id="removeBoardGroupButton" type="button" class="btn btn-secondary mt-1' .
+                                                    '" onclick="' .
                                                     s($moveselectedtoavailable) . '">' .
                                                     get_string('boardgroupsremove', 'kanban') . '</button>
                                             </div>
                                         </td>
                                         <td style="vertical-align: top" class="col-5">
-                                            <select class="col-12" id="id_selectedBoardGroups" name="selectedboardgroups[]" multiple size="10" style="width: 100%; min-width: 20rem;" ondblclick="' .
+                                            <select class="col-12" id="id_selectedBoardGroups" ' .
+                                                'name="selectedboardgroups[]" multiple size="10" ' .
+                                                'style="width: 100%; min-width: 20rem;" ondblclick="' .
                                                 s($moveselectedtoavailable) . '">');
             foreach ($selectedgroups as $group) {
                 $mform->addElement('html', '<option value="' . (int)$group->id . '" selected="selected">' .
@@ -152,6 +153,8 @@ class mod_kanban_mod_form extends moodleform_mod {
         }
         $mform->addElement('hidden', 'boardgroups', $serializedselectedgroups);
         $mform->setType('boardgroups', PARAM_SEQUENCE);
+        $mform->addElement('hidden', 'selectedboardgroupscsv', $serializedselectedgroups);
+        $mform->setType('selectedboardgroupscsv', PARAM_SEQUENCE);
         $mform->addElement('hidden', 'boardgroupid', $primarygroupid);
         $mform->setType('boardgroupid', PARAM_INT);
         $mform->addElement('html', '</div>');
@@ -195,11 +198,11 @@ class mod_kanban_mod_form extends moodleform_mod {
             $groupids = array_map('intval', $groupids);
         }
         if (empty($groupids) && !empty($this->_instance) && !empty($groups)) {
-            $groupids = array_map(function($group) {
+            $groupids = array_map(function ($group) {
                 return (int)$group->id;
             }, $groups);
         }
-        $groupids = array_filter($groupids, function(int $groupid) use ($groups): bool {
+        $groupids = array_filter($groupids, function (int $groupid) use ($groups): bool {
             return !empty($groups[$groupid]);
         });
         return array_values(array_unique($groupids));
@@ -221,14 +224,15 @@ class mod_kanban_mod_form extends moodleform_mod {
             "if(!s||!t||!selected){return false;}" .
             "var options=Array.from(s.selectedOptions);" .
             "if(!options.length&&s.selectedIndex>=0){options=[s.options[s.selectedIndex]];}" .
-            "options.forEach(function(o){o.selected=false;t.appendChild(o);});" .
+            "options.forEach(function(o){t.appendChild(o);o.selected=true;});" .
             "[s,t].forEach(function(x){Array.from(x.options).sort(function(a,b){return a.text.localeCompare(b.text);})" .
             ".forEach(function(o){x.appendChild(o);});});" .
             "Array.from(selected.options).forEach(function(o){o.selected=true;});" .
             "var hidden=document.getElementById('id_boardgroups');" .
+            "var selectedcsv=document.getElementById('id_selectedboardgroupscsv');" .
             "var first=document.getElementById('id_boardgroupid');" .
             "if(hidden&&first){var vals=Array.from(selected.options).map(function(o){return o.value;});" .
-            "hidden.value=vals.join(',');first.value=vals.length?vals[0]:0;}" .
+            "hidden.value=vals.join(',');if(selectedcsv){selectedcsv.value=vals.join(',');}first.value=vals.length?vals[0]:0;}" .
             "return false;";
     }
 
@@ -254,20 +258,42 @@ class mod_kanban_mod_form extends moodleform_mod {
             $groups = groups_get_all_groups($courseid, 0, 0, 'g.id, g.name');
         }
 
-        $submittedgroups = $data['selectedboardgroups'] ?? [];
-        if (!is_array($submittedgroups)) {
-            $submittedgroups = [$submittedgroups];
+        $rawsubmitted = $_POST['selectedboardgroupscsv'] ?? ($data['selectedboardgroupscsv'] ?? '');
+        if (trim((string)$rawsubmitted) === '' || $rawsubmitted === [] || $rawsubmitted === null) {
+            $rawsubmitted = $_POST['selectedboardgroups'] ?? ($data['selectedboardgroups'] ?? []);
         }
-        $submittedgroups = array_filter(array_map('intval', $submittedgroups), function(int $groupid): bool {
+        if (!is_array($rawsubmitted)) {
+            $rawsubmitted = [$rawsubmitted];
+        }
+        $submittedgroups = array_filter(array_map('intval', $rawsubmitted), function (int $groupid): bool {
             return $groupid > 0;
         });
 
-        $boardgroups = trim((string)($data['boardgroups'] ?? ''));
+        if (empty($groups)) {
+            $errors['boardmode'] = get_string('boardgroupsnogroupsgroupmodeerror', 'kanban');
+            return $errors;
+        }
+
+        $boardgroups = trim((string)($_POST['selectedboardgroupscsv'] ?? ($data['selectedboardgroupscsv'] ?? '')));
+        if ($boardgroups === '') {
+            $selectedgroupsraw = $_POST['selectedboardgroups'] ?? ($data['selectedboardgroups'] ?? []);
+            if (is_array($selectedgroupsraw)) {
+                $selectedgroupsraw = array_filter(array_map('trim', $selectedgroupsraw), function ($value): bool {
+                    return $value !== '';
+                });
+                $boardgroups = implode(',', $selectedgroupsraw);
+            } else {
+                $boardgroups = trim((string)$selectedgroupsraw);
+            }
+        }
+        if ($boardgroups === '') {
+            $boardgroups = trim((string)($data['boardgroups'] ?? ''));
+        }
         if ($boardgroups === '' && !empty($submittedgroups)) {
             $boardgroups = implode(',', $submittedgroups);
         }
 
-        if (!empty($groups) && $boardgroups === '') {
+        if ($boardgroups === '') {
             $errors['boardmode'] = get_string('boardgroupsrequired', 'kanban');
         }
 

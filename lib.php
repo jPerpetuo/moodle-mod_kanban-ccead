@@ -84,7 +84,7 @@ function kanban_normalize_board_group_settings(stdClass &$data): void {
         if (!is_array($rawselected)) {
             $rawselected = [$rawselected];
         }
-        $selectedgroupids = array_filter(array_map('intval', $rawselected), function(int $groupid): bool {
+        $selectedgroupids = array_filter(array_map('intval', $rawselected), function (int $groupid): bool {
             return $groupid > 0;
         });
     } else if (isset($data->selectedboardgroups)) {
@@ -93,7 +93,7 @@ function kanban_normalize_board_group_settings(stdClass &$data): void {
         if (!is_array($rawselected)) {
             $rawselected = [$rawselected];
         }
-        $selectedgroupids = array_filter(array_map('intval', $rawselected), function(int $groupid): bool {
+        $selectedgroupids = array_filter(array_map('intval', $rawselected), function (int $groupid): bool {
             return $groupid > 0;
         });
     }
@@ -108,7 +108,7 @@ function kanban_normalize_board_group_settings(stdClass &$data): void {
     $serialized = trim((string)($data->boardgroups ?? ''));
     if ($serialized !== '') {
         $groupids = preg_split('/[;,]/', $serialized, -1, PREG_SPLIT_NO_EMPTY);
-        $groupids = array_filter(array_map('intval', $groupids), function(int $groupid): bool {
+        $groupids = array_filter(array_map('intval', $groupids), function (int $groupid): bool {
             return $groupid > 0;
         });
         if (!empty($groupids)) {

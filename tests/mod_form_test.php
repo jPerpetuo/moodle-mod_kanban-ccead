@@ -20,6 +20,8 @@ namespace mod_kanban;
  * Tests for Kanban activity form validation.
  *
  * @package     mod_kanban
+ * @copyright   2026 CCEAD
+ * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers      ::mod_kanban_mod_form
  */
 final class mod_form_test extends \advanced_testcase {
