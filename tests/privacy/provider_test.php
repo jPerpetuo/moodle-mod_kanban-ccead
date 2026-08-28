@@ -275,8 +275,8 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
         $userids = array_map('intval', $userlist->get_userids());
         $message = 'Discovered user IDs: ' . implode(', ', $userids);
 
-        $this->assertContains($this->targetuser->id, $userids, $message);
-        $this->assertContains($this->otheruser->id, $userids, $message);
+        $this->assertContains((int)$this->targetuser->id, $userids, $message);
+        $this->assertContains((int)$this->otheruser->id, $userids, $message);
         $this->assertNotContains(0, $userids);
     }
 
