@@ -199,8 +199,11 @@ class boardmanager {
      * @return void
      * @throws moodle_exception
      */
-    public function apply_template_to_board(int $targetboardid, int $templateid = 0,
-            bool $confirmoverwrite = false): void {
+    public function apply_template_to_board(
+        int $targetboardid,
+        int $templateid = 0,
+        bool $confirmoverwrite = false
+    ): void {
         global $DB;
 
         if (empty($templateid)) {
