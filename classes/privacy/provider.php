@@ -71,59 +71,55 @@ class provider implements
             return;
         }
 
-        $cm = get_coursemodule_from_id('kanban', $context->instanceid);
-        if (!$cm) {
-            return;
-        }
-
-        $params = [
-            'boardinstance' => $cm->instance,
-            'creatorinstance' => $cm->instance,
-            'assigneeinstance' => $cm->instance,
-            'commentinstance' => $cm->instance,
-            'historyinstance' => $cm->instance,
-            'affectedinstance' => $cm->instance,
-            'eventinstance' => $cm->instance,
+        $params = ['cmid' => $context->instanceid, 'modname' => 'kanban'];
+        $queries = [
+            "SELECT DISTINCT b.userid
+               FROM {course_modules} cm
+               JOIN {modules} m ON m.id = cm.module AND m.name = :modname
+               JOIN {kanban_board} b ON b.kanban_instance = cm.instance
+              WHERE cm.id = :cmid AND b.userid > 0",
+            "SELECT DISTINCT ca.createdby AS userid
+               FROM {course_modules} cm
+               JOIN {modules} m ON m.id = cm.module AND m.name = :modname
+               JOIN {kanban_board} b ON b.kanban_instance = cm.instance
+               JOIN {kanban_card} ca ON ca.kanban_board = b.id
+              WHERE cm.id = :cmid AND ca.createdby > 0",
+            "SELECT DISTINCT a.userid
+               FROM {course_modules} cm
+               JOIN {modules} m ON m.id = cm.module AND m.name = :modname
+               JOIN {kanban_board} b ON b.kanban_instance = cm.instance
+               JOIN {kanban_card} ca ON ca.kanban_board = b.id
+               JOIN {kanban_assignee} a ON a.kanban_card = ca.id
+              WHERE cm.id = :cmid",
+            "SELECT DISTINCT d.userid
+               FROM {course_modules} cm
+               JOIN {modules} m ON m.id = cm.module AND m.name = :modname
+               JOIN {kanban_board} b ON b.kanban_instance = cm.instance
+               JOIN {kanban_card} ca ON ca.kanban_board = b.id
+               JOIN {kanban_discussion_comment} d ON d.kanban_card = ca.id
+              WHERE cm.id = :cmid",
+            "SELECT DISTINCT h.userid
+               FROM {course_modules} cm
+               JOIN {modules} m ON m.id = cm.module AND m.name = :modname
+               JOIN {kanban_board} b ON b.kanban_instance = cm.instance
+               JOIN {kanban_history} h ON h.kanban_board = b.id
+              WHERE cm.id = :cmid AND h.userid > 0",
+            "SELECT DISTINCT h.affected_userid AS userid
+               FROM {course_modules} cm
+               JOIN {modules} m ON m.id = cm.module AND m.name = :modname
+               JOIN {kanban_board} b ON b.kanban_instance = cm.instance
+               JOIN {kanban_history} h ON h.kanban_board = b.id
+              WHERE cm.id = :cmid AND h.affected_userid > 0",
+            "SELECT DISTINCT e.userid
+               FROM {course_modules} cm
+               JOIN {modules} m ON m.id = cm.module AND m.name = :modname
+               JOIN {event} e ON e.instance = cm.instance AND e.modulename = 'kanban'
+              WHERE cm.id = :cmid AND e.userid > 0",
         ];
-        $sql = "SELECT DISTINCT relations.userid
-                  FROM (
-                        SELECT b.userid
-                          FROM {kanban_board} b
-                         WHERE b.kanban_instance = :boardinstance
-                         UNION
-                        SELECT ca.createdby AS userid
-                          FROM {kanban_card} ca
-                          JOIN {kanban_board} b ON b.id = ca.kanban_board
-                         WHERE b.kanban_instance = :creatorinstance
-                         UNION
-                        SELECT a.userid
-                          FROM {kanban_assignee} a
-                          JOIN {kanban_card} ca ON ca.id = a.kanban_card
-                          JOIN {kanban_board} b ON b.id = ca.kanban_board
-                         WHERE b.kanban_instance = :assigneeinstance
-                         UNION
-                        SELECT d.userid
-                          FROM {kanban_discussion_comment} d
-                          JOIN {kanban_card} ca ON ca.id = d.kanban_card
-                          JOIN {kanban_board} b ON b.id = ca.kanban_board
-                         WHERE b.kanban_instance = :commentinstance
-                         UNION
-                        SELECT h.userid
-                          FROM {kanban_history} h
-                          JOIN {kanban_board} b ON b.id = h.kanban_board
-                         WHERE b.kanban_instance = :historyinstance
-                         UNION
-                        SELECT h.affected_userid AS userid
-                          FROM {kanban_history} h
-                          JOIN {kanban_board} b ON b.id = h.kanban_board
-                         WHERE b.kanban_instance = :affectedinstance
-                         UNION
-                        SELECT e.userid
-                          FROM {event} e
-                         WHERE e.instance = :eventinstance AND e.modulename = 'kanban'
-                       ) relations
-                 WHERE relations.userid > 0";
-        $userlist->add_from_sql('userid', $sql, $params);
+
+        foreach ($queries as $sql) {
+            $userlist->add_from_sql('userid', $sql, $params);
+        }
     }
     /**
      * Get the list of contexts that contain user information for the specified user.
