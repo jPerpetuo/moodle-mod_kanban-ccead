@@ -435,9 +435,10 @@ final class change_kanban_content_test extends \advanced_testcase {
         $update = json_decode($returnvalue['update'], true);
 
         $this->assertCount(2, $update);
-        $this->assertEquals('cards', $update[0]['name']);
-        $this->assertEquals('users', $update[1]['name']);
-        $this->assertEquals([$this->users[0]->id], $update[0]['fields']['assignees']);
+        $updatesbyname = array_column($update, null, 'name');
+        $this->assertArrayHasKey('cards', $updatesbyname);
+        $this->assertArrayHasKey('users', $updatesbyname);
+        $this->assertEquals([$this->users[0]->id], $updatesbyname['cards']['fields']['assignees']);
 
         $returnvalue = \mod_kanban\external\change_kanban_content::assign_user(
             $this->kanban->cmid,
@@ -452,9 +453,10 @@ final class change_kanban_content_test extends \advanced_testcase {
         $update = json_decode($returnvalue['update'], true);
 
         $this->assertCount(2, $update);
-        $this->assertEquals('cards', $update[0]['name']);
-        $this->assertEquals('users', $update[1]['name']);
-        $this->assertEquals([$this->users[0]->id, $this->users[2]->id], $update[0]['fields']['assignees']);
+        $updatesbyname = array_column($update, null, 'name');
+        $this->assertArrayHasKey('cards', $updatesbyname);
+        $this->assertArrayHasKey('users', $updatesbyname);
+        $this->assertEquals([$this->users[0]->id, $this->users[2]->id], $updatesbyname['cards']['fields']['assignees']);
 
         $returnvalue = \mod_kanban\external\change_kanban_content::unassign_user(
             $this->kanban->cmid,

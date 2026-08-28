@@ -103,7 +103,11 @@ jobs:
         run: |
           cd moodle
           npx grunt amd
-          cp -R mod/kanban/amd/build/. ../plugin/amd/build/
+          if [ -d public/mod/kanban ]; then
+            cp -R public/mod/kanban/amd/build/. ../plugin/amd/build/
+          else
+            cp -R mod/kanban/amd/build/. ../plugin/amd/build/
+          fi
       - name: Grunt
         run: moodle-plugin-ci grunt --max-lint-warnings 0
 

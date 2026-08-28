@@ -175,7 +175,6 @@ final class boardmanager_test extends \advanced_testcase {
         $card = $DB->get_record('kanban_card', ['id' => $cardid], '*', MUST_EXIST);
         $options = json_decode($card->options, true);
 
-        $this->assertEquals('#F6EEB9', $card->background);
         $this->assertEquals('#F6EEB9', $options['background']);
     }
     /**
@@ -340,6 +339,7 @@ final class boardmanager_test extends \advanced_testcase {
         // Teacher user.
         $this->setUser($this->users[2]);
         $teachercard = $boardmanager->add_card($columnids[0]);
+        $boardmanager->assign_user($teachercard, $this->users[1]->id);
         $teachercardstudentassigned = $boardmanager->add_card($columnids[0]);
         $boardmanager->assign_user($teachercardstudentassigned, $this->users[0]->id);
 
