@@ -954,4 +954,3 @@ class get_kanban_content extends external_api {
         $cache->set(join('-', [$type, $id]), $timestamp);
     }
 }
-

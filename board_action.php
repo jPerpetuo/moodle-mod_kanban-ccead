@@ -32,6 +32,7 @@ use mod_kanban\helper;
 $id = required_param('id', PARAM_INT);
 $boardid = required_param('boardid', PARAM_INT);
 $action = required_param('action', PARAM_ALPHAEXT);
+$confirmoverwrite = optional_param('confirmoverwrite', 0, PARAM_BOOL);
 
 [$course, $cm] = get_course_and_cm_from_cmid($id, 'kanban');
 require_course_login($course, true, $cm);
@@ -62,12 +63,20 @@ switch ($action) {
         redirect($redirecturl, get_string('templatesaved', 'mod_kanban'), null, \core\output\notification::NOTIFY_SUCCESS);
         break;
     case 'apply_template_to_board':
-        $boardmanager->apply_template_to_board($boardid);
+        $boardmanager->apply_template_to_board($boardid, 0, (bool)$confirmoverwrite);
         redirect($redirecturl, get_string('templateappliedtoboard', 'mod_kanban'), null, \core\output\notification::NOTIFY_SUCCESS);
         break;
     case 'apply_template_to_all_group_boards':
-        $boardmanager->apply_template_to_all_group_boards();
-        redirect($redirecturl, get_string('templateappliedtoallgroupboards', 'mod_kanban'), null, \core\output\notification::NOTIFY_SUCCESS);
+        $boardmanager->apply_template_to_all_group_boards(
+            0,
+            (bool)$confirmoverwrite
+        );
+        redirect(
+            $redirecturl,
+            get_string('templateappliedtoallgroupboards', 'mod_kanban'),
+            null,
+            \core\output\notification::NOTIFY_SUCCESS
+        );
         break;
     default:
         throw new moodle_exception('invalidaction');

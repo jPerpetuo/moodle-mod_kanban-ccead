@@ -113,8 +113,11 @@ if (empty($boardid)) {
 
         if ($canaccessotherboards && !empty($requestedgroupid) && !empty($allowedgroups[$requestedgroupid])) {
             $groupid = $requestedgroupid;
-        } else if (!empty($currentgroupid) && !empty($allowedgroups[$currentgroupid]) &&
-            ($canaccessotherboards || groups_is_member((int)$currentgroupid, $USER->id))) {
+        } else if (
+            !empty($currentgroupid) &&
+            !empty($allowedgroups[$currentgroupid]) &&
+            ($canaccessotherboards || groups_is_member((int)$currentgroupid, $USER->id))
+        ) {
             $groupid = $currentgroupid;
         } else if ($canaccessotherboards && !empty($defaultgroupid) && !empty($allowedgroups[$defaultgroupid])) {
             $groupid = $defaultgroupid;
