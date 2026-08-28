@@ -526,6 +526,9 @@ final class change_kanban_content_test extends \advanced_testcase {
         $this->assertEquals('cards', $update[0]['name']);
         $this->assertEquals(1, $update[0]['fields']['completed']);
 
+        $completedcard = $DB->get_record('kanban_card', ['id' => $cards[2]->id], '*', MUST_EXIST);
+        $this->assertEquals((int) $columnids[2], (int) $completedcard->kanban_column);
+
         $returnvalue = \mod_kanban\external\change_kanban_content::set_card_complete(
             $this->kanban->cmid,
             $boardid,
