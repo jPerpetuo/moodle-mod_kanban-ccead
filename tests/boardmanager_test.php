@@ -157,7 +157,7 @@ final class boardmanager_test extends \advanced_testcase {
     }
 
     /**
-     * Card colors must be persisted in both the background field and options.
+     * Card colors must be persisted in the card options.
      *
      * @return void
      */
