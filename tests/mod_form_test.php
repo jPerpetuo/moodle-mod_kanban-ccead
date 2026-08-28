@@ -120,6 +120,16 @@ final class mod_form_test extends \advanced_testcase {
     private function get_form_data(int $courseid): object {
         return (object) [
             'course' => $courseid,
+            'modulename' => 'kanban',
+            'instance' => 0,
+            'coursemodule' => 0,
+            'cmidnumber' => '',
+            'availabilityconditionsjson' => '{"op":"&","c":[],"showc":[]}',
+            'completion' => 0,
+            'completionview' => 0,
+            'completionusegrade' => 0,
+            'completionexpected' => 0,
+            'completionpassgrade' => 0,
             'name' => 'Test Kanban',
             'boardmode' => constants::MOD_KANBAN_BOARDMODE_GROUP,
             'boardgroups' => '',
