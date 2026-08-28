@@ -272,7 +272,7 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
 
         $userlist = new userlist($this->context, 'mod_kanban');
         provider::get_users_in_context($userlist);
-        $userids = $userlist->get_userids();
+        $userids = array_map('intval', $userlist->get_userids());
         $message = 'Discovered user IDs: ' . implode(', ', $userids);
 
         $this->assertContains($this->targetuser->id, $userids, $message);
