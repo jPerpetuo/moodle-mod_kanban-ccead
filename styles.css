@@ -1137,10 +1137,26 @@ a.mod_kanban_attachment_item {
     border-radius: inherit;
     pointer-events: none;
     background:
-        repeating-linear-gradient(to right, var(--mod-kanban-addcolumn-dash-color) 0 10px, transparent 10px 18px) top / calc(100% - .8rem) 1px no-repeat,
-        repeating-linear-gradient(to bottom, var(--mod-kanban-addcolumn-dash-color) 0 10px, transparent 10px 18px) right / 1px calc(100% - .8rem) no-repeat,
-        repeating-linear-gradient(to right, var(--mod-kanban-addcolumn-dash-color) 0 10px, transparent 10px 18px) bottom / calc(100% - .8rem) 1px no-repeat,
-        repeating-linear-gradient(to bottom, var(--mod-kanban-addcolumn-dash-color) 0 10px, transparent 10px 18px) left / 1px calc(100% - .8rem) no-repeat;
+        repeating-linear-gradient(
+            to right,
+            var(--mod-kanban-addcolumn-dash-color) 0 10px,
+            transparent 10px 18px
+        ) top / calc(100% - .8rem) 1px no-repeat,
+        repeating-linear-gradient(
+            to bottom,
+            var(--mod-kanban-addcolumn-dash-color) 0 10px,
+            transparent 10px 18px
+        ) right / 1px calc(100% - .8rem) no-repeat,
+        repeating-linear-gradient(
+            to right,
+            var(--mod-kanban-addcolumn-dash-color) 0 10px,
+            transparent 10px 18px
+        ) bottom / calc(100% - .8rem) 1px no-repeat,
+        repeating-linear-gradient(
+            to bottom,
+            var(--mod-kanban-addcolumn-dash-color) 0 10px,
+            transparent 10px 18px
+        ) left / 1px calc(100% - .8rem) no-repeat;
     background-position:
         .4rem 0,
         100% .4rem,
@@ -1267,7 +1283,7 @@ a.mod_kanban_attachment_item {
 
 .mod_kanban_column_inner.card-body {
     min-height: 10rem;
-    padding: 0 !important;
+    padding: 0;
 }
 
 .mod_kanban_card.card {
@@ -1385,7 +1401,8 @@ a.mod_kanban_attachment_item {
 }
 
 /* If assignees are the only footer info, anchor them to the bottom of the card. */
-.mod_kanban_card:not(.mod_kanban_closed):not(.mod_kanban_hasduedate):not(.mod_kanban_hasdiscussion):not(.mod_kanban_hasdescription):not(.mod_kanban_hasattachment) .mod_kanban_card_assignees_row.has-assignees {
+.mod_kanban_card:not(.mod_kanban_closed):not(.mod_kanban_hasduedate):not(.mod_kanban_hasdiscussion):not(.mod_kanban_hasdescription):not(.mod_kanban_hasattachment)
+.mod_kanban_card_assignees_row.has-assignees {
     margin-top: auto;
 }
 
@@ -1425,7 +1442,7 @@ a.mod_kanban_attachment_item {
 }
 
 .mod_kanban_card .mod_kanban_assigned_user_hidden {
-    display: none !important;
+    display: none;
 }
 
 .mod_kanban_card .mod_kanban_assignee_summary {
@@ -1474,7 +1491,7 @@ a.mod_kanban_attachment_item {
     width: .9rem;
     height: .9rem;
     margin-right: 2px;
-    transform: translateY(0px);
+    transform: translateY(0);
 }
 
 .mod_kanban_duedate {
@@ -1505,7 +1522,7 @@ a.mod_kanban_attachment_item {
 
 .mod_kanban_card .mod_kanban_duedate.mod_kanban_overdue .icon,
 .mod_kanban_card .mod_kanban_duedate.mod_kanban_overdue .mod_kanban_duedate_icon {
-    color: #dc3545;    
+    color: #dc3545;
 }
 
 .mod_kanban_card .mod_kanban_duedate.mod_kanban_overdue .mod_kanban_duedate_text {
@@ -1514,7 +1531,7 @@ a.mod_kanban_attachment_item {
 }
 
 .mod_kanban_card.mod_kanban_closed .mod_kanban_duedate {
-    display: none !important;
+    display: none;
 }
 
 .mod_kanban_card.mod_kanban_closed .mod_kanban_card_footer {
