@@ -113,7 +113,7 @@ class provider implements
             "SELECT DISTINCT e.userid
                FROM {course_modules} cm
                JOIN {modules} m ON m.id = cm.module AND m.name = :modname
-               JOIN {event} e ON e.instance = cm.instance AND e.modulename = :modname
+               JOIN {event} e ON e.instance = cm.instance AND e.modulename = 'kanban'
               WHERE cm.id = :cmid AND e.userid > 0",
         ];
 
@@ -164,7 +164,7 @@ class provider implements
                JOIN {kanban_history} h ON h.kanban_board = b.id
               WHERE h.affected_userid = :userid",
             "SELECT c.id {$base}
-               JOIN {event} e ON e.instance = cm.instance AND e.modulename = :modname
+               JOIN {event} e ON e.instance = cm.instance AND e.modulename = 'kanban'
               WHERE e.userid = :userid",
         ];
 
