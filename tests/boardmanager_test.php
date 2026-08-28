@@ -134,6 +134,49 @@ final class boardmanager_test extends \advanced_testcase {
     }
 
     /**
+     * Cards created in a completion column must start completed.
+     *
+     * @return void
+     */
+    public function test_add_card_to_completion_column(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $boardmanager = new boardmanager($this->kanban->cmid);
+        $boardid = $boardmanager->create_board();
+        $boardmanager->load_board($boardid);
+        $columnids = $DB->get_fieldset_select('kanban_column', 'id', 'kanban_board = :id', ['id' => $boardid]);
+        $completioncolumnid = end($columnids);
+        $DB->set_field('kanban_column', 'options', json_encode(['autoclose' => true]), ['id' => $completioncolumnid]);
+
+        $cardid = $boardmanager->add_card($completioncolumnid, 0, ['title' => 'Completed card']);
+        $card = $boardmanager->get_card($cardid);
+
+        $this->assertEquals(1, (int) $card->completed);
+        $this->assertEquals($completioncolumnid, (int) $card->kanban_column);
+    }
+
+    /**
+     * Card colors must be persisted in the card options.
+     *
+     * @return void
+     */
+    public function test_update_card_color(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $boardmanager = new boardmanager($this->kanban->cmid);
+        $boardid = $boardmanager->create_board();
+        $boardmanager->load_board($boardid);
+        $columnid = $DB->get_field('kanban_column', 'id', ['kanban_board' => $boardid], IGNORE_MULTIPLE);
+        $cardid = $boardmanager->add_card($columnid, 0, ['title' => 'Colored card']);
+
+        $boardmanager->update_card($cardid, ['currentcolor' => '#F6EEB9']);
+        $card = $DB->get_record('kanban_card', ['id' => $cardid], '*', MUST_EXIST);
+        $options = json_decode($card->options, true);
+        $this->assertEquals('#F6EEB9', $options['background']);
+    }
+    /**
      * Test for moving a card.
      *
      * @return void
@@ -295,6 +338,7 @@ final class boardmanager_test extends \advanced_testcase {
         // Teacher user.
         $this->setUser($this->users[2]);
         $teachercard = $boardmanager->add_card($columnids[0]);
+        $boardmanager->assign_user($teachercard, $this->users[1]->id);
         $teachercardstudentassigned = $boardmanager->add_card($columnids[0]);
         $boardmanager->assign_user($teachercardstudentassigned, $this->users[0]->id);
 

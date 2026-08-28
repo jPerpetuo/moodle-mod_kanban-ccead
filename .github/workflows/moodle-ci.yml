@@ -108,6 +108,15 @@ jobs:
         continue-on-error: true
         run: moodle-plugin-ci mustache
 
+      - name: Build AMD artifacts
+        run: |
+          cd moodle
+          npx grunt amd
+          if [ -d public/mod/kanban ]; then
+            cp -R public/mod/kanban/amd/build/. ../plugin/amd/build/
+          else
+            cp -R mod/kanban/amd/build/. ../plugin/amd/build/
+          fi
       - name: Grunt
         run: moodle-plugin-ci grunt --max-lint-warnings 0
 

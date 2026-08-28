@@ -1482,7 +1482,7 @@ class boardmanager {
             if (!isset($data[$key])) {
                 continue;
             }
-            if ($card[$key] != $data[$key]) {
+            if (($card[$key] ?? null) != $data[$key]) {
                 $cardupdate[$key] = $data[$key];
             }
         }
@@ -1570,7 +1570,7 @@ class boardmanager {
         }
         $cardupdate['attachments'] = helper::get_attachments($context->id, $cardid);
         $cardupdate['hasattachment'] = count($cardupdate['attachments']) > 0;
-        $cardupdate['hasdescription'] = !empty(trim($cardupdate['description'])) || $cardupdate['hasattachment'];
+        $cardupdate['hasdescription'] = !empty(trim((string)($cardupdate['description'] ?? ''))) || $cardupdate['hasattachment'];
         if (!empty($cardupdate['description'])) {
             $cardupdate['description'] = file_rewrite_pluginfile_urls(
                 $cardupdate['description'],
