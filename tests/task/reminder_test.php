@@ -106,6 +106,12 @@ final class reminder_test extends \advanced_testcase {
 
         $reminder->execute();
 
+        $notification = $DB->get_record('notifications', [
+            'useridfrom' => $noreply->id,
+            'useridto' => $this->users[0]->id,
+        ], '*', MUST_EXIST);
+        $this->assertNotEmpty($notification->fullmessagehtml);
+
         // User 0 should have one additional notification.
 
         for ($i = 0; $i < 3; $i++) {

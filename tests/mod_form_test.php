@@ -52,7 +52,7 @@ final class mod_form_test extends \advanced_testcase {
         $cm = get_coursemodule_from_id('kanban', $kanban->cmid, 0, false, MUST_EXIST);
         $PAGE->set_course($course);
 
-        $data = $this->get_form_data($course->id);
+        $data = $this->get_form_data($course->id, $kanban->id, $cm->id);
         $form = new \mod_kanban_mod_form($data, 0, $cm, $course);
         $errors = $form->validation((array) $data, []);
 
@@ -76,7 +76,7 @@ final class mod_form_test extends \advanced_testcase {
         $cm = get_coursemodule_from_id('kanban', $kanban->cmid, 0, false, MUST_EXIST);
         $PAGE->set_course($course);
 
-        $data = $this->get_form_data($course->id);
+        $data = $this->get_form_data($course->id, $kanban->id, $cm->id);
         $_POST['selectedboardgroupscsv'] = '';
         $_POST['selectedboardgroups'] = [];
         $form = new \mod_kanban_mod_form($data, 0, $cm, $course);
@@ -102,7 +102,7 @@ final class mod_form_test extends \advanced_testcase {
         $cm = get_coursemodule_from_id('kanban', $kanban->cmid, 0, false, MUST_EXIST);
         $PAGE->set_course($course);
 
-        $data = $this->get_form_data($course->id);
+        $data = $this->get_form_data($course->id, $kanban->id, $cm->id);
         $_POST['selectedboardgroupscsv'] = (string) $groupid;
         $_POST['selectedboardgroups'] = [$groupid];
         $form = new \mod_kanban_mod_form($data, 0, $cm, $course);
@@ -115,11 +115,18 @@ final class mod_form_test extends \advanced_testcase {
      * Return the minimum form data required by the validation under test.
      *
      * @param int $courseid Course identifier.
+     * @param int $instance Activity instance identifier.
+     * @param int $coursemodule Course module identifier.
      * @return object
      */
-    private function get_form_data(int $courseid): object {
+    private function get_form_data(int $courseid, int $instance, int $coursemodule): object {
         return (object) [
             'course' => $courseid,
+            'modulename' => 'kanban',
+            'instance' => $instance,
+            'coursemodule' => $coursemodule,
+            'cmidnumber' => '',
+            'availabilityconditionsjson' => '{"op":"&","c":[],"showc":[]}',
             'name' => 'Test Kanban',
             'boardmode' => constants::MOD_KANBAN_BOARDMODE_GROUP,
             'boardgroups' => '',

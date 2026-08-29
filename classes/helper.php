@@ -247,7 +247,8 @@ class helper {
             $message->fullmessage = get_string('message_' . $messagename . '_fullmessage', 'mod_kanban', $data);
             $message->smallmessage = $message->subject;
             $message->contexturlname = get_string('toboard', 'mod_kanban', $data);
-            if (file_exists(__DIR__ . '/../templates/' . $templatename)) {
+            $message->fullmessagehtml = format_text($message->fullmessage, FORMAT_MARKDOWN);
+            if (file_exists(__DIR__ . '/../templates/' . basename($templatename) . '.mustache')) {
                 $message->fullmessagehtml = $OUTPUT->render_from_template($templatename, $data);
             }
 
