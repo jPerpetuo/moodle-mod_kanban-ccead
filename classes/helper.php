@@ -219,7 +219,7 @@ class helper {
         string $messagename,
         array $users,
         object $data,
-        string $altmessagename = null, // phpcs:ignore
+        ?string $altmessagename = null, // phpcs:ignore
         bool $tocurrentuser = false
     ) {
         global $OUTPUT, $USER;
