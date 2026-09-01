@@ -43,8 +43,8 @@ define(function() {
             selectedOptions = [source.options[source.selectedIndex]];
         }
         selectedOptions.forEach((option) => {
-            option.selected = false;
             target.appendChild(option);
+            option.selected = true;
         });
         sortOptions(target);
         sortOptions(source);

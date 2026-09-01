@@ -150,7 +150,7 @@ class helper {
         \cm_info $cminfo,
         int $type = constants::MOD_KANBAN_EDIT
     ): void {
-        global $USER;
+        global $DB, $USER;
         if (!empty($board->template)) {
             require_capability('mod/kanban:manageboard', $context);
         }
@@ -165,11 +165,26 @@ class helper {
                 }, $members);
                 $ismember = in_array($USER->id, $members);
                 $groupmode = groups_get_activity_groupmode($cminfo, $cminfo->course);
-                if ($groupmode == SEPARATEGROUPS && !$ismember) {
-                    require_capability(constants::MOD_KANBAN_CAPABILITY[$type], $context);
+                $kanban = $DB->get_record('kanban', ['id' => $cminfo->instance], 'boardmode', IGNORE_MISSING);
+                $isgroupboardmode = $kanban &&
+                    (int)$kanban->boardmode === constants::MOD_KANBAN_BOARDMODE_GROUP;
+                $requiresgroupboardaccess = !$ismember && (
+                    $isgroupboardmode ||
+                    $groupmode == SEPARATEGROUPS ||
+                    ($groupmode == VISIBLEGROUPS && $type == constants::MOD_KANBAN_EDIT)
+                );
+                $hasgroupboardaccess = has_capability(constants::MOD_KANBAN_CAPABILITY[$type], $context);
+                if ($type == constants::MOD_KANBAN_VIEW) {
+                    $hasgroupboardaccess = $hasgroupboardaccess ||
+                        has_capability('mod/kanban:editallboards', $context);
                 }
-                if ($groupmode == VISIBLEGROUPS && !$ismember && $type == constants::MOD_KANBAN_EDIT) {
-                    require_capability(constants::MOD_KANBAN_CAPABILITY[$type], $context);
+
+                if ($requiresgroupboardaccess && !$hasgroupboardaccess) {
+                    throw new \moodle_exception(
+                        'boardgroupaccessdenied',
+                        'mod_kanban',
+                        new \moodle_url('/mod/kanban/view.php', ['id' => $cminfo->id])
+                    );
                 }
             }
         }

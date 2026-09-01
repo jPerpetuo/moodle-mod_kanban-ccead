@@ -99,26 +99,29 @@ class mod_kanban_mod_form extends moodleform_mod {
         if (!empty($groups)) {
             $mform->addElement('html', '
                 <div class="fcontainer clearfix">
-                    <label for="availableboardgroups" class="fitemtitle mod_kanban_boardgroups_description">' .
-                        get_string('boardgroupsdescription', 'kanban') . '</label>
+                    <div class="fitemtitle mod_kanban_boardgroups_description">' .
+                        get_string('boardgroupsdescription', 'kanban') . '</div>
                     <div class="fitem fitem_fselect">
                         <div class="felement fselect">
                             <div class="tablecontainer">
                                 <table class="table-reboot" style="width: 100%; max-width: 64rem;">
                                     <tr class="row">
                                         <td style="vertical-align: top" class="col-5">
-                                            <select class="col-12" id="availableboardgroups" ' .
-                                                'name="availableboardgroups[]" multiple size="10" ' .
+                                            <label for="id_selectedBoardGroups" class="font-weight-bold d-block">' .
+                                                get_string('boardgroupsselected', 'kanban') . '</label>
+                                            <div class="small text-muted mb-2">' .
+                                                get_string('boardgroupsselected_help', 'kanban') . '</div>
+                                            <select class="col-12" id="id_selectedBoardGroups" ' .
+                                                'name="selectedboardgroups[]" multiple size="10" ' .
                                                 'style="width: 100%; min-width: 20rem;" ondblclick="' .
-                                                s($moveavailabletoselected) . '">');
-            foreach ($availablegroups as $group) {
-                $mform->addElement('html', '<option value="' . (int)$group->id . '">' .
+                                                s($moveselectedtoavailable) . '">');
+            foreach ($selectedgroups as $group) {
+                $mform->addElement('html', '<option value="' . (int)$group->id . '" selected="selected">' .
                     format_string($group->name) . '</option>');
             }
             $mform->addElement('html', '
                                             </select>
-                                        </td>
-                                        <td class="col-2">
+                                        </td>                                        <td class="col-2">
                                             <button id="addBoardGroupButton" type="button" class="btn btn-secondary mt-1' .
                                                 '" onclick="' .
                                                 s($moveavailabletoselected) . '">' .
@@ -131,17 +134,22 @@ class mod_kanban_mod_form extends moodleform_mod {
                                             </div>
                                         </td>
                                         <td style="vertical-align: top" class="col-5">
-                                            <select class="col-12" id="id_selectedBoardGroups" ' .
-                                                'name="selectedboardgroups[]" multiple size="10" ' .
+                                            <label for="availableboardgroups" class="font-weight-bold d-block">' .
+                                                get_string('boardgroupsavailable', 'kanban') . '</label>
+                                            <div class="small text-muted mb-2">' .
+                                                get_string('boardgroupsavailable_help', 'kanban') . '</div>
+                                            <select class="col-12" id="availableboardgroups" ' .
+                                                'name="availableboardgroups[]" multiple size="10" ' .
                                                 'style="width: 100%; min-width: 20rem;" ondblclick="' .
-                                                s($moveselectedtoavailable) . '">');
-            foreach ($selectedgroups as $group) {
-                $mform->addElement('html', '<option value="' . (int)$group->id . '" selected="selected">' .
+                                                s($moveavailabletoselected) . '">');
+            foreach ($availablegroups as $group) {
+                $mform->addElement('html', '<option value="' . (int)$group->id . '">' .
                     format_string($group->name) . '</option>');
             }
             $mform->addElement('html', '
                                             </select>
                                         </td>
+
                                     </tr>
                                 </table>
                             </div>

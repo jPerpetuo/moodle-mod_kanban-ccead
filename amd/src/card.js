@@ -715,27 +715,6 @@ export default class extends KanbanComponent {
     }
 
     /**
-     * Validate draggable data.
-     * @param {object} dropdata
-     * @returns {boolean} if the data is valid for this drop-zone.
-     */
-    validateDropData(dropdata) {
-        return dropdata?.type == 'card';
-    }
-
-    /**
-     * Executed when a valid dropdata is dropped over the drop-zone.
-     * @param {object} dropdata
-     */
-    drop(dropdata) {
-        if (dropdata.id != this.id) {
-            let newcolumn = this.getElement(selectors.ADDCARD, this.id).dataset.columnid;
-            let aftercard = this.id;
-            this.reactive.dispatch('moveCard', dropdata.id, newcolumn, aftercard);
-        }
-    }
-
-    /**
      * Dispatch event to unassign the current user.
      * @param {*} event
      */

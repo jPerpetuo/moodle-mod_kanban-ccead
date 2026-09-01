@@ -419,6 +419,12 @@ class get_kanban_content extends external_api {
         $boardmode = (int)($kanban->boardmode ?? constants::MOD_KANBAN_BOARDMODE_SHARED);
 
         $kanbanboard = helper::get_cached_board($boardid);
+        helper::check_permissions_for_user_or_group(
+            $kanbanboard,
+            $context,
+            $cminfo,
+            constants::MOD_KANBAN_VIEW
+        );
         $groupid = $kanbanboard->groupid;
 
         $kanbanboard->heading = get_string('courseboard', 'mod_kanban');
@@ -530,11 +536,9 @@ class get_kanban_content extends external_api {
                     return intval($v->id);
                 }, $members);
                 $ismember = in_array($USER->id, $members);
-                if ($groupmode == SEPARATEGROUPS && !$ismember) {
-                    require_capability('mod/kanban:viewallboards', $context);
-                    $restrictcaps = true;
-                }
-                if ($groupmode == VISIBLEGROUPS && !$ismember) {
+                if (($boardmode == constants::MOD_KANBAN_BOARDMODE_GROUP ||
+                        $groupmode == SEPARATEGROUPS ||
+                        $groupmode == VISIBLEGROUPS) && !$ismember) {
                     $restrictcaps = true;
                 }
             }

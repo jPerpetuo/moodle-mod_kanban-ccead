@@ -141,20 +141,22 @@ export default class extends KanbanComponent {
     /**
      * Build a board action URL with sesskey.
      * @param {string} action Action name
+     * @param {boolean} confirmoverwrite Whether the action replaces existing cards.
      * @returns {string}
      */
-    _getBoardActionUrl(action) {
+    _getBoardActionUrl(action, confirmoverwrite = false) {
         return `${M.cfg.wwwroot}/mod/kanban/board_action.php?id=${this.reactive.state.common.id}` +
             `&boardid=${this.reactive.state.board.id}&action=${encodeURIComponent(action)}` +
-            `&sesskey=${encodeURIComponent(M.cfg.sesskey)}`;
+            `&sesskey=${encodeURIComponent(M.cfg.sesskey)}${confirmoverwrite ? '&confirmoverwrite=1' : ''}`;
     }
 
     /**
      * Navigate to a board action endpoint.
      * @param {string} action Action name
+     * @param {boolean} confirmoverwrite Whether the action replaces existing cards.
      */
-    _runBoardAction(action) {
-        window.location.assign(this._getBoardActionUrl(action));
+    _runBoardAction(action, confirmoverwrite = false) {
+        window.location.assign(this._getBoardActionUrl(action, confirmoverwrite));
     }
 
     /**
@@ -260,7 +262,7 @@ export default class extends KanbanComponent {
                 strings[1],
                 strings[2],
                 () => {
-                    this._runBoardAction('apply_template_to_board');
+                    this._runBoardAction('apply_template_to_board', true);
                 }
             );
         }).catch((error) => Log.debug(error));
@@ -280,7 +282,7 @@ export default class extends KanbanComponent {
                 strings[1],
                 strings[2],
                 () => {
-                    this._runBoardAction('apply_template_to_all_group_boards');
+                    this._runBoardAction('apply_template_to_all_group_boards', true);
                 }
             );
         }).catch((error) => Log.debug(error));

@@ -67,7 +67,15 @@ class restore_kanban_activity_structure_step extends restore_activity_structure_
         $data = (object) $data;
         $oldid = $data->id;
         $data->course = $this->get_courseid();
-        if (!empty($data->boardgroups)) {
+        $includegroups = (bool)$this->get_setting_value('groups');
+        $destinationgroups = [];
+        if (!empty($data->boardmode) && (int)$data->boardmode === \mod_kanban\constants::MOD_KANBAN_BOARDMODE_GROUP) {
+            $destinationgroups = groups_get_all_groups($this->get_courseid(), 0, 0, 'g.id, g.name');
+        }
+        if (!$includegroups) {
+            $data->boardgroups = '';
+            $data->boardgroupid = 0;
+        } else if (!empty($data->boardgroups)) {
             $mappedgroupids = [];
             $groupids = preg_split('/[;,]/', (string)$data->boardgroups, -1, PREG_SPLIT_NO_EMPTY);
             foreach ($groupids as $groupid) {
@@ -77,6 +85,11 @@ class restore_kanban_activity_structure_step extends restore_activity_structure_
                 }
             }
             $data->boardgroups = implode(',', array_unique($mappedgroupids));
+        }
+        if ((int)$data->boardmode === \mod_kanban\constants::MOD_KANBAN_BOARDMODE_GROUP && empty($destinationgroups)) {
+            $data->boardmode = \mod_kanban\constants::MOD_KANBAN_BOARDMODE_SHARED;
+            $data->boardgroups = '';
+            $data->boardgroupid = 0;
         }
 
         $newid = $DB->insert_record('kanban', $data);
@@ -98,8 +111,15 @@ class restore_kanban_activity_structure_step extends restore_activity_structure_
         $data = (object) $data;
         $oldid = $data->id;
 
-        $data->userid = $this->get_mappingid('user', $data->userid);
-        $data->groupid = $this->get_mappingid('group', $data->groupid);
+        if ($this->get_setting_value('userinfo')) {
+            $data->userid = $this->get_mappingid('user', $data->userid);
+            $data->groupid = $this->get_mappingid('group', $data->groupid);
+        } else {
+            // The structural source becomes a reusable template in the destination course.
+            $data->userid = 0;
+            $data->groupid = 0;
+            $data->template = 1;
+        }
         $data->kanban_instance = $this->get_mappingid('kanban_id', $data->kanban_instance);
 
         $newid = $DB->insert_record('kanban_board', $data);
@@ -242,6 +262,11 @@ class restore_kanban_activity_structure_step extends restore_activity_structure_
             $kanbancolumns = $DB->get_records('kanban_column', ['kanban_board' => $board->id]);
 
             foreach ($kanbancolumns as $column) {
+                if (!$this->get_setting_value('userinfo')) {
+                    // Card IDs are not restored without user data.
+                    $DB->set_field('kanban_column', 'sequence', '', ['id' => $column->id]);
+                    continue;
+                }
                 if ($column->sequence == '') {
                     continue;
                 }

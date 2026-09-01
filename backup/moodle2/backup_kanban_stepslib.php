@@ -157,16 +157,18 @@ class backup_kanban_activity_structure_step extends backup_activity_structure_st
             $historyitem->annotate_ids('kanban_column_id', 'kanban_column');
             $historyitem->annotate_ids('kanban_board_id', 'kanban_board');
         } else {
-            $board->set_source_sql(
-                '
-            SELECT *
-              FROM {kanban_board}
-             WHERE kanban_instance = ? AND userid = 0 AND groupid = 0 AND template = 1',
-                [backup::VAR_PARENTID]
-            );
+            $structureboardid = $this->get_structure_source_board_id();
+            // A source is mandatory even when there is no existing board to copy.
+            $board->set_source_table('kanban_board', ['id' => ['sqlparam' => $structureboardid]]);
         }
         $column->set_source_table('kanban_column', ['kanban_board' => backup::VAR_PARENTID]);
-        $card->set_source_table('kanban_card', ['kanban_column' => backup::VAR_PARENTID]);
+
+        if ($userinfo) {
+            $card->set_source_table('kanban_card', ['kanban_column' => backup::VAR_PARENTID]);
+        } else {
+            // Keep the XML element valid without exporting card content.
+            $card->set_source_table('kanban_card', ['id' => ['sqlparam' => 0]]);
+        }
 
         $board->annotate_ids('kanban_id', 'kanban_instance');
         $column->annotate_ids('kanban_board_id', 'kanban_board');
@@ -174,5 +176,66 @@ class backup_kanban_activity_structure_step extends backup_activity_structure_st
         $card->annotate_ids('kanban_column_id', 'kanban_column');
 
         return $this->prepare_activity_structure($kanban);
+    }
+
+    /**
+     * Get the board that supplies structure when user data is excluded.
+     *
+     * @return int
+     */
+    private function get_structure_source_board_id(): int {
+        global $DB;
+
+        $kanbanid = $this->task->get_activityid();
+        $kanban = $DB->get_record('kanban', ['id' => $kanbanid], 'boardmode, boardgroupid', IGNORE_MISSING);
+        if (!$kanban) {
+            return 0;
+        }
+
+        if ((int)$kanban->boardmode === \mod_kanban\constants::MOD_KANBAN_BOARDMODE_GROUP) {
+            if ($kanban->boardgroupid) {
+                $groupboardid = $DB->get_field('kanban_board', 'id', [
+                    'kanban_instance' => $kanbanid,
+                    'userid' => 0,
+                    'groupid' => $kanban->boardgroupid,
+                    'template' => 0,
+                ]);
+                if ($groupboardid) {
+                    return (int)$groupboardid;
+                }
+            }
+
+            $groupboardid = $DB->get_field_sql(
+                'SELECT MIN(id)
+                   FROM {kanban_board}
+                  WHERE kanban_instance = :instance
+                    AND userid = :userid
+                    AND groupid > :groupid
+                    AND template = :template',
+                ['instance' => $kanbanid, 'userid' => 0, 'groupid' => 0, 'template' => 0]
+            );
+            if ($groupboardid) {
+                return (int)$groupboardid;
+            }
+        } else {
+            $courseboardid = $DB->get_field('kanban_board', 'id', [
+                'kanban_instance' => $kanbanid,
+                'userid' => 0,
+                'groupid' => 0,
+                'template' => 0,
+            ]);
+            if ($courseboardid) {
+                return (int)$courseboardid;
+            }
+        }
+
+        return (int)$DB->get_field_sql(
+            'SELECT id
+               FROM {kanban_board}
+              WHERE kanban_instance = :instance AND template = :template
+              ORDER BY timemodified DESC',
+            ['instance' => $kanbanid, 'template' => 1],
+            IGNORE_MISSING
+        );
     }
 }

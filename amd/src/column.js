@@ -96,6 +96,7 @@ export default class extends KanbanComponent {
         );
         this.draggable = false;
         this.dragdrop = new DragDrop(this);
+        this.addEventListener(this.getElement(), 'dragover', this._updateCardDropZone);
         this.checkDragging(state);
         this.boardid = state.board.id;
         this.cmid = state.common.id;
@@ -174,19 +175,35 @@ export default class extends KanbanComponent {
     }
 
     /**
+     * Find the card that should precede a dragged card.
+     * @param {object} dropdata
+     * @param {object} event
+     * @returns {number|string} Id of the card before the drop position, or 0.
+     */
+    _getAfterCard(dropdata, event) {
+        const cards = this.getElements(selectors.CARD);
+        const pointerY = event.clientY;
+        let aftercard = 0;
+        for (let i = 0; i < cards.length; i++) {
+            if (cards[i].dataset.id == dropdata.id) {
+                continue;
+            }
+            const rect = cards[i].getBoundingClientRect();
+            if (rect.top + rect.height / 2 <= pointerY) {
+                aftercard = cards[i].dataset.id;
+            }
+        }
+        return aftercard;
+    }
+
+    /**
      * Executed when a valid dropdata is dropped over the drop-zone.
      * @param {object} dropdata
      * @param {object} event
      */
     drop(dropdata, event) {
         if (dropdata.type == 'card') {
-            let cards = this.getElements(selectors.CARD);
-            let aftercard = 0;
-            for (let i = 0; i < cards.length; i++) {
-                if (cards[i].offsetTop + cards[i].clientHeight / 2 <= event.layerY) {
-                    aftercard = cards[i].dataset.id;
-                }
-            }
+            const aftercard = this._getAfterCard(dropdata, event);
             this.reactive.dispatch('moveCard', dropdata.id, this.id, aftercard);
         }
         if (dropdata.type == 'column') {
@@ -203,18 +220,8 @@ export default class extends KanbanComponent {
      */
     showDropZone(dropdata, event) {
         if (dropdata.type == 'card') {
-            let cards = this.getElements(selectors.CARD);
-            let aftercard = 0;
-            for (let i = 0; i < cards.length; i++) {
-                if (cards[i].offsetTop + cards[i].clientHeight / 2 <= event.layerY) {
-                    aftercard = cards[i].dataset.id;
-                }
-            }
-            if (aftercard == 0) {
-                this.getElement(selectors.ADDCARDCONTAINER).classList.add('mod_kanban_insert');
-            } else {
-                this.getElement(selectors.ADDCARDCONTAINER, aftercard).classList.add('mod_kanban_insert');
-            }
+            this.carddropdata = dropdata;
+            this._updateCardDropZone(event);
         }
         if (dropdata.type == 'column') {
             this.getElement(selectors.ADDCOLUMNCONTAINER).classList.add('mod_kanban_insert');
@@ -225,10 +232,43 @@ export default class extends KanbanComponent {
      * Remove visual hints to the user.
      */
     hideDropZone() {
-        this.getElement(selectors.ADDCOLUMNCONTAINER).classList.remove('mod_kanban_insert');
+        this.carddropdata = null;
+        const addcolumncontainer = this.getElement(selectors.ADDCOLUMNCONTAINER);
+        if (addcolumncontainer) {
+            addcolumncontainer.classList.remove('mod_kanban_insert');
+        }
         this.getElements(selectors.ADDCARDCONTAINER).forEach((e) => {
             e.classList.remove('mod_kanban_insert');
         });
+    }
+
+    /**
+     * Update the insertion hint while a card is dragged within this column.
+     *
+     * Card components are not drop zones, so the column receives every dragover
+     * event and can show one stable insertion point.
+     *
+     * @param {DragEvent} event
+     */
+    _updateCardDropZone(event) {
+        if (this.carddropdata?.type != 'card') {
+            return;
+        }
+
+        const containers = this.getElements(selectors.ADDCARDCONTAINER);
+        containers.forEach((element) => {
+            element.classList.remove('mod_kanban_insert');
+        });
+        const firstcontainer = containers[0];
+        if (!firstcontainer) {
+            return;
+        }
+
+        const aftercard = this._getAfterCard(this.carddropdata, event);
+        const targetcontainer = aftercard == 0
+            ? firstcontainer
+            : this.getElement(selectors.ADDCARDCONTAINER, aftercard);
+        (targetcontainer || firstcontainer).classList.add('mod_kanban_insert');
     }
 
     /**
