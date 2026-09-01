@@ -98,11 +98,11 @@ final class backup_restore_test extends advanced_testcase {
         foreach ($templatecolumns as $templatecolumn) {
             $this->assertSame('', $templatecolumn->sequence);
         }
-        $this->assertTrue($DB->record_exists('kanban_column', [
+        $templatecolumn = $DB->get_record('kanban_column', [
             'kanban_board' => $template->id,
             'title' => 'Revisão',
-            'options' => '{"color":"#f7d7d7"}',
-        ]));
+        ], '*', MUST_EXIST);
+        $this->assertSame('{"color":"#f7d7d7"}', $templatecolumn->options);
 
         $restoredcm = get_coursemodule_from_instance('kanban', $restoredkanban->id, $newcourseid, false, MUST_EXIST);
         $restoredmanager = new boardmanager($restoredcm->id);
@@ -110,11 +110,11 @@ final class backup_restore_test extends advanced_testcase {
 
         $this->assertSame(0, $DB->count_records('kanban_card', ['kanban_board' => $restoredboardid]));
         $this->assertSame(4, $DB->count_records('kanban_column', ['kanban_board' => $restoredboardid]));
-        $this->assertTrue($DB->record_exists('kanban_column', [
+        $restoredcolumn = $DB->get_record('kanban_column', [
             'kanban_board' => $restoredboardid,
             'title' => 'Revisão',
-            'options' => '{"color":"#f7d7d7"}',
-        ]));
+        ], '*', MUST_EXIST);
+        $this->assertSame('{"color":"#f7d7d7"}', $restoredcolumn->options);
     }
 
     /**
