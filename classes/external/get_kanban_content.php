@@ -536,9 +536,11 @@ class get_kanban_content extends external_api {
                     return intval($v->id);
                 }, $members);
                 $ismember = in_array($USER->id, $members);
-                if (($boardmode == constants::MOD_KANBAN_BOARDMODE_GROUP ||
+                if (
+                    ($boardmode == constants::MOD_KANBAN_BOARDMODE_GROUP ||
                         $groupmode == SEPARATEGROUPS ||
-                        $groupmode == VISIBLEGROUPS) && !$ismember) {
+                        $groupmode == VISIBLEGROUPS) && !$ismember
+                ) {
                     $restrictcaps = true;
                 }
             }

@@ -37,8 +37,8 @@ use stdClass;
  * Tests the structural import behaviour without user data.
  *
  * @package     mod_kanban
- * @covers      backup_kanban_activity_structure_step
- * @covers      restore_kanban_activity_structure_step
+ * @covers      \backup_kanban_activity_structure_step
+ * @covers      \restore_kanban_activity_structure_step
  */
 final class backup_restore_test extends advanced_testcase {
     /**
@@ -48,6 +48,8 @@ final class backup_restore_test extends advanced_testcase {
      */
     public static function setUpBeforeClass(): void {
         global $CFG;
+
+        parent::setUpBeforeClass();
 
         require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
         require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
