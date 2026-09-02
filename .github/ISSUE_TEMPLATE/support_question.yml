@@ -1,0 +1,36 @@
+name: Support question
+description: Ask a usage or configuration question that is not a security vulnerability.
+title: "[Question]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include passwords, session keys, student data, or other sensitive information.
+  - type: input
+    id: pluginrelease
+    attributes:
+      label: Plugin release
+      placeholder: 0.4.0-beta
+    validations:
+      required: true
+  - type: input
+    id: moodleversion
+    attributes:
+      label: Moodle version
+      placeholder: 5.2.x
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Question and context
+      description: Describe the activity mode, group configuration, and the outcome you need.
+    validations:
+      required: true
+  - type: textarea
+    id: attempted
+    attributes:
+      label: What you already checked
+      description: Include documentation pages or configuration changes already reviewed.
+    validations:
+      required: true

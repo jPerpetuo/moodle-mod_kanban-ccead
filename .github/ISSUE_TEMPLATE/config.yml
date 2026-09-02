@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/jPerpetuo/kanban_plugin_moodle/tree/main/docs
+    about: Read the functional, operational, and development documentation.
+  - name: Security vulnerability
+    url: https://github.com/jPerpetuo/kanban_plugin_moodle/security/policy
+    about: Read the private reporting instructions before disclosing a vulnerability.

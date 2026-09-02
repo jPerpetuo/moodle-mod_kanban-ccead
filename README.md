@@ -84,6 +84,13 @@ The repository includes automated checks for supported Moodle versions and datab
 
 See [Development and testing](docs/development.md) for commands, test coverage, and the GitHub Actions matrix.
 
+## Community
+
+* [Contributing](CONTRIBUTING.md)
+* [Governance](GOVERNANCE.md)
+* [Support](SUPPORT.md)
+* [Security policy](SECURITY.md)
+
 ## Licence and attribution
 
 Original work is copyright 2023-2025 ISB Bayern and Stefan Hanauska.

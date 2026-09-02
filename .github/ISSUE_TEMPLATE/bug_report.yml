@@ -1,0 +1,61 @@
+name: Bug report
+description: Report a reproducible defect in the Kanban activity module.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include passwords, session keys, student data, or other sensitive information.
+  - type: input
+    id: pluginrelease
+    attributes:
+      label: Plugin release
+      description: Copy the release value from mod/kanban/version.php.
+      placeholder: 0.4.0-beta
+    validations:
+      required: true
+  - type: input
+    id: moodleversion
+    attributes:
+      label: Moodle version
+      placeholder: 5.2.x
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: PHP and database
+      placeholder: PHP 8.x, MariaDB or PostgreSQL version
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Provide the smallest sequence that reproduces the result.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: Include an error message or sanitized log output when available.
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Confirmation
+      options:
+        - label: I removed sensitive and personal data from this report.
+          required: true

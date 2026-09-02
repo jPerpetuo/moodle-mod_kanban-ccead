@@ -1,0 +1,32 @@
+name: Feature request
+description: Propose an improvement to the Kanban activity module.
+title: "[Feature]: "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Describe the Moodle teaching or administration problem.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behaviour
+      description: Describe the expected result without prescribing an implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Compatibility and privacy impact
+      description: State any expected effect on existing activities, groups, permissions, backup, restore, or user data.
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Confirmation
+      options:
+        - label: I checked the documentation and existing issues before proposing this feature.
+          required: true
