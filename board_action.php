@@ -18,7 +18,7 @@
  * Execute board-level kanban actions that are easier to handle via redirect than via reactive updates.
  *
  * @package     mod_kanban
- * @copyright   2026
+ * @copyright   2026 CCEAD PUC-Rio
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

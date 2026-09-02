@@ -17,7 +17,7 @@
  * Group board selector settings for mod_kanban.
  *
  * @module mod_kanban/boardgroupsetting
- * @copyright 2026
+ * @copyright 2026 CCEAD PUC-Rio
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

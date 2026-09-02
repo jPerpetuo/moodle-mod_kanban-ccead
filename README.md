@@ -2,7 +2,7 @@
 
 Kanban is a Moodle activity module for project and learning-process management inside a course. It provides shared, group, personal, and template boards with columns, cards, assignments, due dates, notifications, history, and activity-completion rules.
 
-This repository is a maintained derivative of the original `mod_kanban` project. It preserves the `mod_kanban` Moodle component name, upstream copyright notices, and the GNU GPL v3 or later licence. It is intended to replace the original module in an existing Moodle installation. It cannot be installed alongside another plugin using the same component name.
+This repository is a maintained derivative of the original [`mod_kanban` project](https://github.com/bycs-lp/moodle-mod_kanban). It preserves the `mod_kanban` Moodle component name, upstream copyright notices, and the GNU GPL v3 or later licence. It is intended to replace the original module in an existing Moodle installation. It cannot be installed alongside another plugin using the same component name.
 
 ## Supported Moodle versions
 
@@ -95,4 +95,4 @@ See [Development and testing](docs/development.md) for commands, test coverage, 
 
 Original work is copyright 2023-2025 ISB Bayern and Stefan Hanauska.
 
-This derivative is distributed under the GNU General Public License, version 3 or later. See [LICENSE](LICENSE).
+This derivative is distributed under the GNU General Public License, version 3 or later. See [LICENSE](LICENSE) and [NOTICE](NOTICE).

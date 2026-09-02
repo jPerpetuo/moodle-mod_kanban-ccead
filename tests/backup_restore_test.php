@@ -19,7 +19,7 @@
  *
  * @package     mod_kanban
  * @category    test
- * @copyright   2026
+ * @copyright   2026 CCEAD PUC-Rio
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

@@ -18,7 +18,7 @@
  * Portuguese Brazilian language file for mod_kanban.
  *
  * @package     mod_kanban
- * @copyright   2026
+ * @copyright   2026 CCEAD PUC-Rio
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
