@@ -4,6 +4,14 @@ This activity supports using kanban method for managing projects or learning pro
 This plugin is not built for improving course layout or sth similar, there are already other plugins that are way better
 for this purpose (e.g. mod_board).
 
+## Documentation
+
+Technical and operational documentation is available in [docs/README.md](docs/README.md). It covers the architecture, permissions, backup and restore behaviour, development workflow, and release operations.
+
+## Fork status
+
+This repository is a maintained derivative of the original `mod_kanban` project. It keeps the same Moodle component name and is intended as a replacement for that module in existing installations. Upstream copyright notices and the GNU GPL v3 or later licence are preserved.
+
 ## Features
 
 Within a kanban activity there can be several types of boards:
