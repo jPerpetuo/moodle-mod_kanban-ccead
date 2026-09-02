@@ -8,7 +8,7 @@ $ErrorActionPreference = 'Stop'
 
 $reporoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $versionref = $Ref + ':version.php'
-$versionfile = & git -C $reporoot show $versionref
+$versionfile = (& git -C $reporoot show $versionref) -join [Environment]::NewLine
 if ($LASTEXITCODE -ne 0) {
     throw "Cannot read version.php from Git reference '$Ref'."
 }
