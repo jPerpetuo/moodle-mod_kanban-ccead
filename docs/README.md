@@ -12,6 +12,8 @@ This directory documents the current behaviour and maintenance model of the Kanb
 | [Backup, restore, and import](backup-restore.md) | What is retained or intentionally omitted when user data is excluded. |
 | [Development and testing](development.md) | Local checks, automated tests, CI matrix, and code locations. |
 | [Release and operations](release.md) | Upgrade, rollback, manual verification, and release discipline. |
+| [0.4.0-beta release notes](releases/0.4.0-beta.md) | Release scope, compatibility, upgrade notes, and beta status. |
+| [Screenshot capture guide](../screenshots/README.md) | Public screenshot scope and privacy requirements. |
 
 ## Scope and terminology
 
@@ -21,4 +23,3 @@ This directory documents the current behaviour and maintenance model of the Kanb
 * **User data**: cards, attachments, descriptions, assignees, discussions, history, and user/group-specific board state.
 
 These documents describe the current `mod_kanban` component. They are maintained alongside the code and should be updated whenever functionality, data handling, or supported Moodle versions change.
-
