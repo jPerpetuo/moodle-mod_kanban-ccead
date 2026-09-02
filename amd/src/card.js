@@ -959,7 +959,14 @@ export default class extends KanbanComponent {
      * @returns {string}
      */
     formatRelativeDueDate(timestamp) {
-        return this.updateRelativeTime(timestamp);
+        const relative = this.updateRelativeTime(timestamp);
+        const lang = this.reactive.state.common.lang || navigator.language;
+
+        if (lang.toLowerCase().startsWith('en') && timestamp >= new Date().getTime()) {
+            return `Due ${relative}`;
+        }
+
+        return relative;
     }
 
     /**

@@ -1,6 +1,9 @@
 # Screenshot capture guide
 
 This directory stores public screenshots for release pages and a future Moodle Marketplace listing. Capture images only from a disposable demonstration course with fictional users and no personal, institutional, or production data.
+## Current screenshot
+
+![Group board with example cards](kanban-board-groups-en.png)
 
 ## Required screenshots
 

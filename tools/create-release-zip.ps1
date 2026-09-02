@@ -13,7 +13,7 @@ if ($LASTEXITCODE -ne 0) {
     throw "Cannot read version.php from Git reference '$Ref'."
 }
 
-if ($versionfile -notmatch "\$plugin->release\s*=\s*'([^']+)';") {
+if ($versionfile -notmatch '\$plugin->release\s*=\s*''([^'']+)'';') {
     throw 'Cannot determine the plugin release from version.php.'
 }
 
