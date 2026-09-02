@@ -1,116 +1,91 @@
-# Kanban
+# Kanban activity for Moodle
 
-This activity supports using kanban method for managing projects or learning processes inside a moodle course.
-This plugin is not built for improving course layout or sth similar, there are already other plugins that are way better
-for this purpose (e.g. mod_board).
+Kanban is a Moodle activity module for project and learning-process management inside a course. It provides shared, group, personal, and template boards with columns, cards, assignments, due dates, notifications, history, and activity-completion rules.
 
-## Documentation
+This repository is a maintained derivative of the original `mod_kanban` project. It preserves the `mod_kanban` Moodle component name, upstream copyright notices, and the GNU GPL v3 or later licence. It is intended to replace the original module in an existing Moodle installation. It cannot be installed alongside another plugin using the same component name.
 
-Technical and operational documentation is available in [docs/README.md](docs/README.md). It covers the architecture, permissions, backup and restore behaviour, development workflow, and release operations.
+## Supported Moodle versions
 
-## Fork status
+The current beta release is `0.4.0-beta`. The declared compatibility range is Moodle 4.1 through Moodle 5.2.
 
-This repository is a maintained derivative of the original `mod_kanban` project. It keeps the same Moodle component name and is intended as a replacement for that module in existing installations. Upstream copyright notices and the GNU GPL v3 or later licence are preserved.
+JavaScript is required. The activity uses Moodle reactive components and has no non-JavaScript fallback.
 
 ## Features
 
-Within a kanban activity there can be several types of boards:
+* Shared boards for all authorised activity users.
+* One board per selected Moodle group, with server-side access control.
+* Optional personal boards.
+* Columns with titles, order, visual options, locking, completion behaviour, and hidden completed cards.
+* Cards with descriptions, attachments, assignees, due dates, reminders, discussions, and completion state.
+* Board history, notifications, and Moodle activity-completion rules.
+* Template boards that copy structure only: columns, options, colours, order, and locks. Existing target cards require explicit confirmation before a template overwrites a board.
+* Course import and restore that retain activity configuration and board structure without importing cards or other user data when Moodle user data is excluded.
 
-* The course board, accessible to everyone who has access to the activity (unless it's disabled in favour of personal
-  boards).
-* Personal boards for each user (accessible only by the user or with one of the viewallboards / editallboards
-  functions): Can be enabled in the activity settings
-* Group boards: Can be enabled in the activity settings (visible or separate groups)
-* Template boards: Anyone with the manageboards capability can copy an existing board as a template board. Any board
-  created in the Kanban activity afterwards will be copied from this board (no user data is copied). Template boards are
-  also subject to the backup/restore process even if no user data is included.
+See [Configuration and board flows](docs/flows.md) for the functional reference.
 
-If you have permission to access boards other than the course board, you can choose to switch to a user/group or
-template board from the board action menu. The board title always indicates which board you are currently using.
+## Installation
 
-If there is no template, a new board will consist of the three classic columns "Todo", "Doing" and "Done". Boards can be
-deleted. When they are accessed again, a new board is created from the template.
+### Install from a ZIP file
 
-You can add columns and cards by hovering between two existing columns/cards and clicking on the plus sign. Change their
-titles by clicking on them or selecting 'Edit details' from the action menu. Cards/columns can be moved by dragging and
-dropping (not yet on touch devices) or by selecting 'Move' from the action menu.
+1. Download the release ZIP.
+2. In Moodle, go to **Site administration > Plugins > Install plugins**.
+3. Upload the ZIP and complete the validation and installation process.
+4. Go to **Site administration > Notifications** if Moodle asks to complete the upgrade.
 
-If you want to avoid moving / renaming columns accidentally, you can lock them using the action menu. You can also lock
-all columns on the board, which will also prevent you from adding new columns (as this may not be necessary after you
-have set up your board).
+### Install from source
 
-Cards can be assigned to yourself (via the action menu) or to (multiple) others via "Edit details". Cards can have a
-description and attachments that explain the card in more detail. You can set a due date for a card and an alternative
-notification date. Due dates are also added to your calendar. You can always edit cards you have created.
-Cards can be marked as closed (in which case changing the title is disabled) or reopened. You can open a discussion for
-the card (small chat, text only).
-Columns can be set to automatically close cards when moved there (the Done column does this by default), and to hide
-closed cards (they are not deleted, but you can make them visible again by clicking the eye icon at the top of the
-column).
+Place this repository at:
 
-Notifications can be sent in the following cases:
+```
+{moodle-dirroot}/mod/kanban
+```
 
-* You have been (un)assigned to a card
-* A card you are assigned to has been moved, discussed, closed or reopened.
-* A card you are assigned to (and which is not closed) is due.
+Then complete the Moodle upgrade through **Site administration > Notifications** or:
 
-You can enable history in the activity settings (if your server allows it): It makes changes to cards visible (e.g. when
-it was added / moved / closed / ... and by whom).
+```bash
+php admin/cli/upgrade.php
+```
 
-You can also move a particular map to all maps (including the template) in the action menu. This will create a copy of
-the card and place it in the first available column of the board. If there is already an old copy of the card, the
-existing copy will be updated (the position, assignees and discussion will not be changed).
+Do not install this fork alongside the original `mod_kanban` plugin. Both use the same Moodle component and directory.
 
-While working with the board, it always fetches changes from the server to allow concurrent access (there is no locking
-mechanism, so race conditions may occur in some cases). Live update can be disabled on the server, and the pull interval
-can be changed (default is 10 seconds).
+## Upgrading from the original module
 
-The plugin supports automatic completion by a certain amount of created and / or completed cards.
+This fork is designed to replace the original module in place.
 
-## Requirements
+1. Back up the database, `moodledata`, and the existing `mod/kanban` directory.
+2. Replace the existing `mod/kanban` code with the release files from this repository.
+3. Run Moodle's upgrade process.
+4. Purge caches and validate the affected activity flows in a staging site before production deployment.
 
-The plugin requires at least Moodle 4.1. Support for outdated Moodle versions will be dropped automatically - you will
-have to use a recent Moodle version, if you want to use the latest version of this plugin.
+For the complete release and rollback procedure, see [Release and operations](docs/release.md).
 
-Javascript has to be enabled as the plugin uses the reactive components of Moodle. There is no replacement, if
-Javascript is disabled.
+## Groups, permissions, and import
 
-## Installing via uploaded ZIP file ##
+Group boards are limited to the groups selected in the activity settings. Users without an all-boards capability can access only boards for groups they belong to. A direct request for another group board is rejected and redirected to an accessible board.
 
-1. Log in to your Moodle site as an admin and go to _Site administration >
-   Plugins > Install plugins_.
-2. Upload the ZIP file with the plugin code. You should only be prompted to add
-   extra details if your plugin type is not automatically detected.
-3. Check the plugin validation report and finish the installation.
+Course import normally excludes user data. In that mode, the activity preserves board structure, including custom columns, colours, options, order, and locks, but does not import cards, attachments, assignees, discussions, or history. Groups are retained only when the Moodle import option includes them.
 
-## Installing manually ##
+See [Permissions and groups](docs/permissions.md) and [Backup, restore, and import](docs/backup-restore.md).
 
-The plugin can be also installed by putting the contents of this directory to
+## Documentation
 
-    {your/moodle/dirroot}/mod/kanban
+The documentation index is available in [docs/README.md](docs/README.md).
 
-Afterwards, log in to your Moodle site as an admin and go to _Site administration >
-Notifications_ to complete the installation.
+* [Architecture](docs/architecture.md)
+* [Configuration and board flows](docs/flows.md)
+* [Permissions and groups](docs/permissions.md)
+* [Backup, restore, and import](docs/backup-restore.md)
+* [Development and testing](docs/development.md)
+* [Release and operations](docs/release.md)
 
-Alternatively, you can run
+## Development and testing
 
-    $ php admin/cli/upgrade.php
+The repository includes automated checks for supported Moodle versions and database engines. Before submitting changes, run the local preflight and the relevant Moodle tests.
 
-to complete the installation from the command line.
+See [Development and testing](docs/development.md) for commands, test coverage, and the GitHub Actions matrix.
 
-## License ##
+## Licence and attribution
 
-2023 ISB Bayern, Stefan Hanauska <stefan.hanauska@csg-in.de>
+Original work is copyright 2023-2025 ISB Bayern and Stefan Hanauska.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
+This derivative is distributed under the GNU General Public License, version 3 or later. See [LICENSE](LICENSE).
