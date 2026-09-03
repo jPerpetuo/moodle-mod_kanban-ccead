@@ -15,13 +15,7 @@ The declared support range is maintained in [version.php](../version.php). The c
 
 ## Local preflight
 
-The repository includes a Windows-oriented static preflight installed outside the plugin source:
-
-```powershell
-E:\Moodle03dev\tools\Invoke-KanbanPreflight.ps1
-```
-
-It runs PHP syntax checks, `git diff --check`, and Moodle CodeSniffer. It is a fast gate before pushing; it does not replace integration tests.
+Run a local static preflight before pushing. At minimum, run PHP syntax checks, `git diff --check`, and Moodle CodeSniffer. This is a fast gate; it does not replace integration tests.
 
 ## CI
 
