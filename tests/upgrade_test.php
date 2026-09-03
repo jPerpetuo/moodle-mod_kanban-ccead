@@ -63,7 +63,7 @@ final class upgrade_test extends \advanced_testcase {
         $dbman->drop_field($table, $boardgroups);
         $dbman->drop_field($table, $boardgroupid);
 
-        \xmldb_kanban_upgrade(2026050701);
+        $this->run_upgrade_from_version(2026050701);
 
         $this->assertTrue($dbman->field_exists($table, $boardgroupid));
         $this->assertTrue($dbman->field_exists($table, $boardgroups));
@@ -102,12 +102,29 @@ final class upgrade_test extends \advanced_testcase {
         $number = new \xmldb_field('number', XMLDB_TYPE_INTEGER, '10', null, null, null, '0', 'timemodified');
         $dbman->drop_field($table, $number);
 
-        \xmldb_kanban_upgrade(2024121602);
+        $this->run_upgrade_from_version(2024121602);
 
         $this->assertTrue($dbman->field_exists($table, $number));
         $firstcard = $DB->get_record('kanban_card', ['id' => $firstcardid], 'id, number', MUST_EXIST);
         $secondcard = $DB->get_record('kanban_card', ['id' => $secondcardid], 'id, number', MUST_EXIST);
         $this->assertEquals(1, (int) $firstcard->number);
         $this->assertEquals(2, (int) $secondcard->number);
+    }
+
+    /**
+     * Run an upgrade while simulating the version installed before the upgrade.
+     *
+     * @param int $oldversion The version stored before the upgrade.
+     * @return void
+     */
+    private function run_upgrade_from_version(int $oldversion): void {
+        $installedversion = get_config('mod_kanban', 'version');
+        set_config('version', $oldversion, 'mod_kanban');
+
+        try {
+            \xmldb_kanban_upgrade($oldversion);
+        } finally {
+            set_config('version', $installedversion, 'mod_kanban');
+        }
     }
 }
