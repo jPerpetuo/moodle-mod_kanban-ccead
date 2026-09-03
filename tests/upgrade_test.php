@@ -34,6 +34,7 @@ final class upgrade_test extends \advanced_testcase {
         global $CFG;
 
         parent::setUp();
+        require_once($CFG->libdir . '/upgradelib.php');
         require_once($CFG->dirroot . '/mod/kanban/db/upgrade.php');
     }
 

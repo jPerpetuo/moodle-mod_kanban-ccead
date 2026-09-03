@@ -505,16 +505,13 @@ final class change_kanban_content_test extends \advanced_testcase {
         $boardmanager = new boardmanager($this->kanban->cmid);
         $boardid = $boardmanager->create_board();
         $boardmanager->load_board($boardid);
-        $columnids = $DB->get_fieldset_select('kanban_column', 'id', 'kanban_board = :id', ['id' => $boardid]);
-        $cards = [];
-        foreach ($columnids as $columnid) {
-            $cardid = $boardmanager->add_card($columnid, 0, ['title' => 'Testcard']);
-            $cards[] = $boardmanager->get_card($cardid);
-        }
+        $completedcolumnid = $boardmanager->get_first_completion_column($boardid);
+        $this->assertNotEmpty($completedcolumnid);
+        $cardid = $boardmanager->add_card($completedcolumnid, 0, ['title' => 'Testcard']);
         $returnvalue = \mod_kanban\external\change_kanban_content::set_card_complete(
             $this->kanban->cmid,
             $boardid,
-            ['cardid' => $cards[2]->id, 'state' => 1]
+            ['cardid' => $cardid, 'state' => 1]
         );
         $returnvalue = \external_api::clean_returnvalue(
             \mod_kanban\external\change_kanban_content::set_card_complete_returns(),
@@ -527,13 +524,13 @@ final class change_kanban_content_test extends \advanced_testcase {
         $this->assertEquals('cards', $update[0]['name']);
         $this->assertEquals(1, $update[0]['fields']['completed']);
 
-        $completedcard = $DB->get_record('kanban_card', ['id' => $cards[2]->id], '*', MUST_EXIST);
-        $this->assertEquals((int) $columnids[2], (int) $completedcard->kanban_column);
+        $completedcard = $DB->get_record('kanban_card', ['id' => $cardid], '*', MUST_EXIST);
+        $this->assertEquals((int) $completedcolumnid, (int) $completedcard->kanban_column);
 
         $returnvalue = \mod_kanban\external\change_kanban_content::set_card_complete(
             $this->kanban->cmid,
             $boardid,
-            ['cardid' => $cards[2]->id, 'state' => 0]
+            ['cardid' => $cardid, 'state' => 0]
         );
         $returnvalue = \external_api::clean_returnvalue(
             \mod_kanban\external\change_kanban_content::set_card_complete_returns(),
