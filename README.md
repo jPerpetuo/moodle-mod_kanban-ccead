@@ -46,7 +46,33 @@ Then complete the Moodle upgrade through **Site administration > Notifications**
 php admin/cli/upgrade.php
 ```
 
-Do not install this fork alongside the original `mod_kanban` plugin. Both use the same Moodle component and directory.
+### Install from Git
+
+From the Moodle `mod` directory, clone this repository into a directory named `kanban`:
+
+```bash
+cd {moodle-dirroot}/mod
+git clone https://github.com/jPerpetuo/moodle-mod_kanban-ccead.git kanban
+```
+
+Then complete the Moodle upgrade through **Site administration > Notifications** or:
+
+```bash
+php admin/cli/upgrade.php
+```
+
+### Update a Git installation
+
+Use this only when the plugin directory has no local changes. Check the status, fetch the current branch, and run the Moodle upgrade:
+
+```bash
+cd {moodle-dirroot}/mod/kanban
+git status --short
+git pull --ff-only origin main
+php {moodle-dirroot}/admin/cli/upgrade.php
+```
+
+Do not install this fork alongside the original `mod_kanban` plugin. Both use the same Moodle component and directory. For an existing installation, follow the replacement procedure below rather than cloning a second copy.
 
 ## Upgrading from the original module
 
