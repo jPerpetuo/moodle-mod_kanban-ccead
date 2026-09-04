@@ -183,6 +183,8 @@ export default class extends KanbanComponent {
             this._showDetailsModal
         );
         this.draggable = false;
+        // Keep the drag image anchored to the point where the user grabbed the card.
+        this.relativeDrag = true;
         this.dragdrop = new DragDrop(this);
         this.checkEditing(state);
         this.boardid = state.board.id;
